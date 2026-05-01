@@ -113,7 +113,7 @@ export function EditShiftDialog({ shift, onClose }: Props) {
 
         <form onSubmit={onSubmit} className="mt-5 space-y-4">
           <div className="grid gap-3 sm:grid-cols-3">
-            <div className="space-y-2">
+            <div className="flex flex-col w-full min-w-0">
               <Label htmlFor="edit-date">Date</Label>
               <Input
                 id="edit-date"
@@ -121,9 +121,10 @@ export function EditShiftDialog({ shift, onClose }: Props) {
                 value={date}
                 onChange={(event) => setDate(event.target.value)}
                 required
+                className="mt-1"
               />
             </div>
-            <div className="space-y-2">
+            <div className="flex flex-col w-full min-w-0">
               <Label htmlFor="edit-start">Start</Label>
               <Input
                 id="edit-start"
@@ -131,9 +132,10 @@ export function EditShiftDialog({ shift, onClose }: Props) {
                 value={startTime}
                 onChange={(event) => setStartTime(event.target.value)}
                 required
+                className="mt-1"
               />
             </div>
-            <div className="space-y-2">
+            <div className="flex flex-col w-full min-w-0">
               <Label htmlFor="edit-end">End</Label>
               <Input
                 id="edit-end"
@@ -141,6 +143,7 @@ export function EditShiftDialog({ shift, onClose }: Props) {
                 value={endTime}
                 onChange={(event) => setEndTime(event.target.value)}
                 required
+                className="mt-1"
               />
             </div>
           </div>

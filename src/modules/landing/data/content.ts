@@ -142,9 +142,9 @@ export const PAIN_POINTS: readonly PainPoint[] = [
 export const STEPS: readonly Step[] = [
   {
     index: "01",
-    title: "Set up locations & staff",
+    title: "Onboard your team",
     description:
-      "Define each location, its timezone, the skills required, and which staff are certified to work there. Takes minutes, not hours.",
+      "Your locations are already configured. Just invite your staff, assign their roles and certifications, and set their recurring availability — you're ready to schedule.",
   },
   {
     index: "02",

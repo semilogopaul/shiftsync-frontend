@@ -19,7 +19,7 @@ export function ContactPage() {
   };
 
   return (
-    <section className="relative isolate min-h-[100dvh] flex items-center justify-center overflow-hidden py-24">
+    <section className="relative isolate min-h-[100dvh] flex items-center justify-center overflow-hidden pt-36 pb-24">
       <BackgroundDecoration />
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent" />
       

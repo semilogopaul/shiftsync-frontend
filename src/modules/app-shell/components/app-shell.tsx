@@ -21,7 +21,7 @@ export function AppShell({ children }: { readonly children: ReactNode }) {
 
   if (isLoading || !user) {
     return (
-      <div className="bg-background flex min-h-screen">
+      <div className="bg-background fixed inset-0 flex">
         {/* Sidebar skeleton */}
         <aside className="border-border/60 bg-card/50 fixed inset-y-0 left-0 z-30 hidden w-64 flex-col gap-4 border-r p-4 lg:flex">
           <Skeleton className="h-12 w-40" />
@@ -33,21 +33,21 @@ export function AppShell({ children }: { readonly children: ReactNode }) {
           </div>
         </aside>
         {/* Main content skeleton */}
-        <div className="flex min-h-screen flex-1 flex-col lg:pl-64">
-          <header className="border-border/60 bg-background/70 sticky top-0 z-20 flex h-14 items-center gap-3 border-b px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-1 flex-col min-w-0 lg:pl-64">
+          <header className="border-border/60 bg-background flex h-14 flex-none items-center gap-3 border-b px-4 sm:px-6 lg:px-8">
             <div className="flex-1" />
             <Skeleton className="h-9 w-9 rounded-full" />
           </header>
-          <main className="flex-1 space-y-4 p-4 sm:p-6 lg:p-8">
+          <main className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 lg:px-8">
             <Skeleton className="h-8 w-48" />
-            <Skeleton className="h-4 w-64" />
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Skeleton className="h-4 w-64 mt-2" />
+            <div className="grid gap-4 mt-4 sm:grid-cols-2 lg:grid-cols-4">
               <Skeleton className="h-28 rounded-3xl" />
               <Skeleton className="h-28 rounded-3xl" />
               <Skeleton className="h-28 rounded-3xl" />
               <Skeleton className="h-28 rounded-3xl" />
             </div>
-            <Skeleton className="h-64 rounded-3xl" />
+            <Skeleton className="h-64 rounded-3xl mt-4" />
           </main>
         </div>
         <span className="sr-only">Loading…</span>
@@ -56,12 +56,12 @@ export function AppShell({ children }: { readonly children: ReactNode }) {
   }
 
   return (
-    <div className="bg-background flex min-h-screen">
+    <div className="bg-background fixed inset-0 flex">
       <RealtimeBridge />
       <Sidebar user={user} />
-      <div className="flex min-h-screen flex-1 flex-col lg:pl-64">
+      <div className="flex flex-1 flex-col min-w-0 lg:pl-64">
         <TopBar user={user} />
-        <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">{children}</main>
+        <main className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 lg:px-8">{children}</main>
       </div>
     </div>
   );

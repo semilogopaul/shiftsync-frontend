@@ -21,8 +21,11 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setValidationError(null);
-    if (password.length < 8) {
-      setValidationError("Password must be at least 8 characters.");
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{12,}$/;
+    if (!passwordRegex.test(password)) {
+      setValidationError(
+        "Password must be at least 12 characters and contain uppercase, lowercase, and a number.",
+      );
       return;
     }
     if (password !== confirm) {
@@ -47,9 +50,10 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
           type="password"
           autoComplete="new-password"
           required
-          minLength={8}
+          minLength={12}
           value={password}
           onChange={(event) => setPassword(event.target.value)}
+          placeholder="************"
         />
       </div>
 
@@ -60,9 +64,10 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
           type="password"
           autoComplete="new-password"
           required
-          minLength={8}
+          minLength={12}
           value={confirm}
           onChange={(event) => setConfirm(event.target.value)}
+          placeholder="************"
         />
       </div>
 

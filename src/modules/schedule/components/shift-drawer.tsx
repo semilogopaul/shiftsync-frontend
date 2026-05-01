@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   AlertTriangle,
   CheckCircle2,
@@ -80,20 +80,26 @@ export function ShiftDrawer({ shiftId, onClose }: ShiftDrawerProps) {
       />
       <aside className="bg-card border-border/60 absolute right-0 top-0 flex h-full w-full max-w-xl flex-col overflow-hidden border-l shadow-2xl">
         <header className="border-border/60 flex items-start justify-between gap-4 border-b p-5">
-          <div>
-            <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">
-              {shift?.location?.name ?? 'Shift'}
-            </p>
-            <h2 className="mt-1 text-xl font-semibold tracking-tight">
-              {shift
-                ? formatDayLabel(shift.startsAt, shift.location?.timezone ?? 'UTC')
-                : 'Loading…'}
-            </h2>
+          <div className="flex-1">
             {shift ? (
-              <p className="text-muted-foreground mt-1 text-sm">
-                {formatTimeRange(shift.startsAt, shift.endsAt, shift.location?.timezone ?? 'UTC')}
-              </p>
-            ) : null}
+              <>
+                <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">
+                  {shift.location?.name}
+                </p>
+                <h2 className="mt-1 text-xl font-semibold tracking-tight">
+                  {formatDayLabel(shift.startsAt, shift.location?.timezone ?? 'UTC')}
+                </h2>
+                <p className="text-muted-foreground mt-1 text-sm">
+                  {formatTimeRange(shift.startsAt, shift.endsAt, shift.location?.timezone ?? 'UTC')}
+                </p>
+              </>
+            ) : (
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-24 rounded" />
+                <Skeleton className="h-6 w-40 rounded" />
+                <Skeleton className="mt-1 h-3 w-32 rounded" />
+              </div>
+            )}
           </div>
           <Button type="button" variant="ghost" size="icon" onClick={onClose} aria-label="Close">
             <X className="h-4 w-4" aria-hidden="true" />
@@ -260,19 +266,19 @@ export function ShiftDrawer({ shiftId, onClose }: ShiftDrawerProps) {
                   {meAssignment.clockedInAt && !meAssignment.clockedOutAt ? (
                     <Button
                       type="button"
+                      size="sm"
                       onClick={() => mutations.clockOut.mutate(shift.id)}
                       disabled={mutations.clockOut.isPending}
                     >
-                      <Clock className="mr-2 h-4 w-4" aria-hidden="true" />
                       Clock out
                     </Button>
                   ) : (
                     <Button
                       type="button"
+                      size="sm"
                       onClick={() => mutations.clockIn.mutate(shift.id)}
                       disabled={mutations.clockIn.isPending}
                     >
-                      <Clock className="mr-2 h-4 w-4" aria-hidden="true" />
                       Clock in
                     </Button>
                   )}
@@ -284,7 +290,6 @@ export function ShiftDrawer({ shiftId, onClose }: ShiftDrawerProps) {
                         size="sm"
                         onClick={() => setSwapOpen(true)}
                       >
-                        <Send className="mr-2 h-4 w-4" aria-hidden="true" />
                         Request swap
                       </Button>
                       <Button
@@ -293,7 +298,6 @@ export function ShiftDrawer({ shiftId, onClose }: ShiftDrawerProps) {
                         size="sm"
                         onClick={() => setDropOpen(true)}
                       >
-                        <Repeat className="mr-2 h-4 w-4" aria-hidden="true" />
                         Drop shift
                       </Button>
                     </>
@@ -360,7 +364,6 @@ function CalloutButton({
         onClick={() => setOpen(true)}
         className="text-destructive border-destructive/30"
       >
-        <AlertTriangle className="mr-2 h-4 w-4" aria-hidden="true" />
         Call out
       </Button>
     );
@@ -438,17 +441,23 @@ function AssignPanel({ shiftId, locationId }: AssignPanelProps) {
   const overridable = errors.some((e) => isOverridableCode(e.code));
   const hardBlocked = errors.some((e) => !isOverridableCode(e.code));
 
+  // Auto-trigger preview when user is selected
+  useEffect(() => {
+    if (userId) {
+      previewMutation.mutate();
+    }
+  }, [userId]);
+
   return (
     <section className="border-border/60 space-y-3 rounded-2xl border p-4">
       <div>
         <h3 className="text-foreground text-sm font-semibold">Assign staff</h3>
         <p className="text-muted-foreground mt-1 text-xs">
-          We’ll run the validator before the assignment is saved.
+          We'll run the validator when you select a staff member.
         </p>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
-        <Select value={userId} onValueChange={setUserId}>
+      <Select value={userId} onValueChange={setUserId}>
           <SelectTrigger>
             <SelectValue placeholder="Select staff member" />
           </SelectTrigger>
@@ -460,21 +469,16 @@ function AssignPanel({ shiftId, locationId }: AssignPanelProps) {
             ))}
           </SelectContent>
         </Select>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => previewMutation.mutate()}
-          disabled={!userId || previewMutation.isPending}
-        >
-          {previewMutation.isPending ? (
-            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-          ) : (
-            'Check'
-          )}
-        </Button>
-      </div>
 
-      {preview ? (
+
+      {previewMutation.isPending ? (
+        <div className="space-y-2">
+          <Skeleton className="h-12 rounded-lg" />
+          <Skeleton className="h-16 rounded-lg" />
+        </div>
+      ) : null}
+
+      {preview && !previewMutation.isPending ? (
         <div className="space-y-2">
           {preview.projection ? <ProjectionPanel projection={preview.projection} /> : null}
           {errors.length === 0 && warnings.length === 0 ? (
@@ -577,11 +581,19 @@ function AssignPanel({ shiftId, locationId }: AssignPanelProps) {
           !userId ||
           hardBlocked ||
           mutations.assign.isPending ||
+          previewMutation.isPending ||
           (overridable && overrideReason.trim().length < 2)
         }
         className={cn('w-full')}
       >
-        Confirm assignment
+        {mutations.assign.isPending ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+            Assigning...
+          </>
+        ) : (
+          'Confirm assignment'
+        )}
       </Button>
     </section>
   );

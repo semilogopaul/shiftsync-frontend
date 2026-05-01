@@ -72,6 +72,6 @@ export const shiftsService = {
     apiPost<Shift, { reason: string }>(`/shifts/${shiftId}/callout`, { reason }),
   history: (shiftId: string) =>
     apiGet<AuditLogEntry[]>(`/shifts/${shiftId}/history`),
-  clockIn: (shiftId: string) => apiPost<Shift>(`/shifts/${shiftId}/clock-in`),
-  clockOut: (shiftId: string) => apiPost<Shift>(`/shifts/${shiftId}/clock-out`),
+  clockIn: (shiftId: string) => apiPost<Shift, {}>(`/shifts/${shiftId}/clock-in`, {}),
+  clockOut: (shiftId: string) => apiPost<Shift, {}>(`/shifts/${shiftId}/clock-out`, {}),
 } as const;

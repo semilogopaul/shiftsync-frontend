@@ -261,51 +261,42 @@ function ShiftPill({ shift, locations, onSelect }: ShiftPillProps) {
         type="button"
         onClick={onSelect}
         className={cn(
-          'group relative flex h-[124px] w-full flex-col items-start justify-between gap-1.5 overflow-hidden rounded-xl border bg-card p-3.5 text-left shadow-sm ring-1 ring-inset ring-black/5 dark:ring-white/5 transition-all hover:-translate-y-[2px] hover:shadow-md',
+          'group relative w-full h-40 rounded-lg border p-3 text-left transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden',
           understaffed
-            ? 'border-amber-500/30 bg-amber-500/5 hover:border-amber-500/50 hover:bg-amber-500/10'
-            : 'border-border/60 hover:border-primary/40 hover:bg-primary/5',
+            ? 'border-primary/20 bg-amber-50/50 dark:bg-amber-950/20 hover:border-primary/40 hover:shadow-md hover:shadow-primary/20'
+            : 'border-primary/20 bg-card/70 hover:border-primary/40 hover:shadow-md hover:shadow-primary/20',
         )}
       >
-        <div
-          className={cn(
-            'absolute inset-y-0 left-0 w-1',
-            understaffed ? 'bg-amber-500/50' : 'bg-primary/50',
-          )}
-        />
-
-        <div className="flex w-full items-start justify-between gap-2">
-          <span className="text-foreground truncate text-[13px] font-bold">
-            {location?.name ?? '—'}
-          </span>
-          {shift.isPremium ? (
-            <Sparkles
-              className="h-3.5 w-3.5 shrink-0 text-fuchsia-500"
-              aria-label="Premium shift"
-            />
-          ) : null}
-        </div>
-
-        <p className="text-muted-foreground/90 text-xs font-medium">
-          {formatTimeRange(shift.startsAt, shift.endsAt, location?.timezone ?? 'UTC')}
-        </p>
-
-        <div className="mt-1 flex w-full items-center justify-between gap-2 border-t border-border/40 pt-2.5">
-          <span
-            className={cn(
-              'inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold',
-              understaffed
-                ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400'
-                : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400',
-            )}
-          >
-            {filled}/{shift.headcount} {shift.skill ? `· ${shift.skill.name}` : ''}
-          </span>
-          {shift.status !== 'PUBLISHED' ? (
-            <span className="text-muted-foreground bg-muted/50 rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider">
-              {shift.status === 'DRAFT' ? 'DRAFT' : shift.status}
+        <div className="flex flex-col gap-2">
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="text-foreground text-sm font-semibold truncate">
+              {location?.name ?? '—'}
             </span>
-          ) : null}
+            <span className={cn(
+              'text-[11px] font-semibold uppercase tracking-wide shrink-0 px-2 py-0.5 rounded',
+              understaffed
+                ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300'
+                : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300',
+            )}>
+              {filled}/{shift.headcount}
+            </span>
+          </div>
+          <p className="text-muted-foreground text-xs">
+            {formatTimeRange(shift.startsAt, shift.endsAt, location?.timezone ?? 'UTC')}
+          </p>
+          <div className="flex items-center justify-between gap-2 text-[11px]">
+            <span className="text-muted-foreground truncate">
+              {shift.skill?.name}
+            </span>
+            {shift.status !== 'PUBLISHED' && (
+              <span className="bg-muted/80 text-muted-foreground px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider">
+                {shift.status}
+              </span>
+            )}
+            {shift.isPremium && (
+              <Sparkles className="h-3 w-3 text-fuchsia-500 shrink-0" aria-label="Premium" />
+            )}
+          </div>
         </div>
       </button>
     </li>

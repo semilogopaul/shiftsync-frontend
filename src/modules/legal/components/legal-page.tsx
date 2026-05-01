@@ -39,14 +39,14 @@ export function LegalPage({
               alt="ShiftSync"
               width={800}
               height={320}
-              className="h-16 w-auto dark:hidden"
+              className="h-[95px] w-auto dark:hidden -ml-4"
             />
             <Image
               src="/logo/shiftsync-white-logo.png"
               alt="ShiftSync"
               width={720}
               height={320}
-              className="hidden h-16 w-auto dark:block"
+              className="hidden h-[95px] w-auto dark:block"
             />
           </Link>
           <Link

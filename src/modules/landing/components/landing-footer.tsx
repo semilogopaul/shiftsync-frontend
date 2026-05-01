@@ -36,14 +36,14 @@ export function LandingFooter() {
                 alt="ShiftSync"
                 width={800}
                 height={320}
-                className="h-12 w-auto dark:hidden"
+                className="h-[71px] w-auto dark:hidden -ml-4"
               />
               <Image
                 src="/logo/shiftsync-white-logo.png"
                 alt="ShiftSync"
                 width={720}
                 height={320}
-                className="hidden h-12 w-auto dark:block"
+                className="hidden h-[71px] w-auto dark:block"
               />
             </Link>
             <p className="text-muted-foreground mt-4 text-sm leading-relaxed">

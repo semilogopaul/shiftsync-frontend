@@ -18,7 +18,7 @@ export function PageShell({ children }: PageShellProps) {
         Skip to content
       </a>
       <LandingHeader />
-      <main id="main" className="flex-1 pt-16">
+      <main id="main" className="flex-1">
         {children}
       </main>
     </div>

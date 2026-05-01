@@ -35,7 +35,7 @@ export function TopBar({ user }: TopBarProps) {
 
   return (
     <>
-      <header className="border-border/60 bg-background/70 sticky top-0 z-20 flex h-14 items-center gap-3 border-b px-4 backdrop-blur sm:px-6 lg:px-8">
+      <header className="border-border/60 bg-background flex h-14 flex-none items-center gap-3 border-b px-4 sm:px-6 lg:px-8">
         <Button
           type="button"
           variant="ghost"
@@ -79,12 +79,11 @@ export function TopBar({ user }: TopBarProps) {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
+            <DropdownMenuItem asChild className="hover:bg-muted/60 focus:bg-muted/60 focus:text-foreground">
               <Link href="/settings">Settings</Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => logout.mutate()} className="text-destructive focus:text-destructive">
-              <LogOut className="mr-2 h-4 w-4" aria-hidden="true" />
+            <DropdownMenuItem onClick={() => logout.mutate()} className="text-destructive hover:bg-destructive/10 hover:text-destructive focus:bg-destructive/10 focus:text-destructive">
               Sign out
             </DropdownMenuItem>
           </DropdownMenuContent>

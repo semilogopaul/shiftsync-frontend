@@ -5,6 +5,8 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { messageFromError } from "@/common/utils/error-message";
 import {
   certificationsService,
   type GrantCertificationInput,
@@ -49,7 +51,8 @@ export function useCertificationMutations() {
     grant: useMutation({
       mutationFn: (input: GrantCertificationInput) =>
         certificationsService.grant(input),
-      onSuccess: invalidate,
+      onSuccess: () => { invalidate(); toast.success('Certification granted'); },
+      onError: (err) => toast.error(messageFromError(err, 'Could not grant certification')),
     }),
     update: useMutation({
       mutationFn: ({
@@ -59,11 +62,13 @@ export function useCertificationMutations() {
         id: string;
         input: UpdateCertificationInput;
       }) => certificationsService.update(id, input),
-      onSuccess: invalidate,
+      onSuccess: () => { invalidate(); toast.success('Certification updated'); },
+      onError: (err) => toast.error(messageFromError(err, 'Could not update certification')),
     }),
     revoke: useMutation({
       mutationFn: (id: string) => certificationsService.revoke(id),
-      onSuccess: invalidate,
+      onSuccess: () => { invalidate(); toast.success('Certification revoked'); },
+      onError: (err) => toast.error(messageFromError(err, 'Could not revoke certification')),
     }),
   };
 }

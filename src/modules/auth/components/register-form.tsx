@@ -29,8 +29,11 @@ export function RegisterForm() {
       );
       return;
     }
-    if (password.length < 8) {
-      setValidationError("Password must be at least 8 characters.");
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{12,}$/;
+    if (!passwordRegex.test(password)) {
+      setValidationError(
+        "Password must be at least 12 characters and contain uppercase, lowercase, and a number.",
+      );
       return;
     }
     register.mutate({
@@ -38,7 +41,6 @@ export function RegisterForm() {
       lastName: lastName.trim(),
       email: email.trim().toLowerCase(),
       password,
-      acceptedTerms: true,
     });
   };
 
@@ -106,10 +108,10 @@ export function RegisterForm() {
             type={showPassword ? "text" : "password"}
             autoComplete="new-password"
             required
-            minLength={8}
+            minLength={12}
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            placeholder="At least 8 characters"
+            placeholder="************"
             className="h-12 bg-background/50 rounded-xl pl-10 pr-10"
           />
           <button
@@ -121,8 +123,7 @@ export function RegisterForm() {
           </button>
         </div>
         <p className="text-muted-foreground text-xs">
-          Use at least 8 characters. Mix in numbers and symbols for extra
-          strength.
+          Use at least 12 characters including uppercase, lowercase, and a number.
         </p>
       </div>
 

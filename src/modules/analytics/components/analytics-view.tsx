@@ -183,18 +183,20 @@ function DistributionPanel({ params }: PanelParams) {
           {rows.map((row) => (
             <li
               key={row.userId}
-              className="flex items-center justify-between gap-3 px-3 py-2 text-xs"
+              className="grid grid-cols-[1fr_150px_130px] items-center gap-3 px-3 py-2 text-xs"
             >
               <span className="text-foreground truncate font-medium">
                 {row.firstName} {row.lastName}
               </span>
-              <span className="text-muted-foreground tabular-nums">
+              <span className="text-muted-foreground text-right tabular-nums">
                 {row.totalHours.toFixed(1)}h
                 {row.desiredHoursForWindow != null
                   ? ` / ${row.desiredHoursForWindow.toFixed(1)}h`
                   : ''}
               </span>
-              <ScheduleStatusChip status={row.scheduleStatus} />
+              <div className="flex justify-end">
+                <ScheduleStatusChip status={row.scheduleStatus} />
+              </div>
             </li>
           ))}
         </ul>

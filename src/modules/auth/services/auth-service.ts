@@ -11,7 +11,6 @@ export interface RegisterInput {
   readonly password: string;
   readonly firstName: string;
   readonly lastName: string;
-  readonly acceptedTerms: true;
 }
 
 export interface ForgotPasswordInput {
@@ -34,4 +33,8 @@ export const authService = {
     apiPost<{ ok: true }, ForgotPasswordInput>("/auth/forgot-password", input),
   resetPassword: (input: ResetPasswordInput) =>
     apiPost<{ ok: true }, ResetPasswordInput>("/auth/reset-password", input),
+  verifyEmail: (token: string) =>
+    apiPost<{ ok: true }, { token: string }>("/auth/verify-email", { token }),
+  resendVerification: (email: string) =>
+    apiPost<{ ok: true }, { email: string }>("/auth/resend-verification", { email }),
 } as const;
