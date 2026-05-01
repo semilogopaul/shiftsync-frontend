@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ValidationFindingsList } from '@/common/components/validation-findings-list';
+import { ConfirmDialog } from '@/common/components/confirm-dialog';
 import { useLocations } from '@/modules/locations';
 import { useSkills } from '@/modules/skills';
 import { usersService } from '@/modules/users';
@@ -144,6 +145,7 @@ function CertList({
   readonly showRevoked: boolean;
 }) {
   const mutations = useCertificationMutations();
+  const [pendingRevoke, setPendingRevoke] = useState<Certification | null>(null);
   const visible = showRevoked ? rows : rows.filter((c) => !c.decertifiedAt);
   return (
     <ul className="border-border/60 divide-y rounded-2xl border">
@@ -180,16 +182,7 @@ function CertList({
                 variant="outline"
                 size="sm"
                 className="text-destructive border-destructive/40 hover:bg-destructive/10 shrink-0 text-xs"
-                onClick={() => {
-                  if (
-                    typeof window !== 'undefined' &&
-                    !window.confirm(
-                      `Revoke ${cert.user?.firstName ?? 'this user'}'s certification? Historical assignments stay intact.`,
-                    )
-                  )
-                    return;
-                  mutations.revoke.mutate(cert.id);
-                }}
+                onClick={() => setPendingRevoke(cert)}
                 disabled={mutations.revoke.isPending}
               >
                 {mutations.revoke.isPending ? (
@@ -201,6 +194,27 @@ function CertList({
           </li>
         );
       })}
+      <ConfirmDialog
+        open={pendingRevoke !== null}
+        title="Revoke certification?"
+        description={
+          pendingRevoke
+            ? `Revoke ${pendingRevoke.user?.firstName ?? 'this user'}'s certification? Historical assignments stay intact.`
+            : ''
+        }
+        confirmLabel="Revoke"
+        destructive
+        busy={mutations.revoke.isPending}
+        onConfirm={() => {
+          if (!pendingRevoke) return;
+          mutations.revoke.mutate(pendingRevoke.id, {
+            onSettled: () => setPendingRevoke(null),
+          });
+        }}
+        onOpenChange={(open) => {
+          if (!open) setPendingRevoke(null);
+        }}
+      />
     </ul>
   );
 }

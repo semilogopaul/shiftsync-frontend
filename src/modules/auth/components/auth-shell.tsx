@@ -38,13 +38,13 @@ export function AuthShell({ title, subtitle, children, footer }: AuthShellProps)
         </Link>
         <div className="mx-auto mt-10 w-full max-w-md lg:mt-0">
           <div className="mb-10 flex flex-col items-center sm:items-start">
-            <Link href="/" className="mb-6 hover:opacity-80 transition-opacity">
+            <Link href="/" className="mb-6 hidden hover:opacity-80 transition-opacity sm:inline-flex">
               <Image
                 src="/logo/shiftsync-grey-logo.png"
                 alt="ShiftSync"
                 width={800}
                 height={320}
-                className="h-[108px] w-auto -ml-4 dark:hidden -ml-4"
+                className="h-[108px] w-auto -ml-4 dark:hidden"
                 priority
               />
               <Image

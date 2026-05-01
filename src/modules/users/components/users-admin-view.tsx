@@ -33,6 +33,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ConfirmDialog } from '@/common/components/confirm-dialog';
 import { ApiError } from '@/lib/api-client';
 import {
   usersAdminService,
@@ -132,10 +133,12 @@ export function UsersAdminView() {
     onError: (err) => toast.error(apiErrorMessage(err, 'Failed to update user status')),
   });
 
+  const [pendingDelete, setPendingDelete] = useState<AdminUser | null>(null);
   const deleteMutation = useMutation({
     mutationFn: (id: string) => usersAdminService.remove(id),
     onSuccess: () => {
       toast.success('User deleted');
+      setPendingDelete(null);
       invalidate();
     },
     onError: (err) => toast.error(apiErrorMessage(err, 'Failed to delete user')),
@@ -257,15 +260,7 @@ export function UsersAdminView() {
                       isActive: !(user.isActive ?? true),
                     })
                   }
-                  onDelete={() => {
-                    if (
-                      window.confirm(
-                        `Soft-delete ${user.firstName} ${user.lastName}? They will lose access immediately.`,
-                      )
-                    ) {
-                      deleteMutation.mutate(user.id);
-                    }
-                  }}
+                  onDelete={() => setPendingDelete(user)}
                   busy={
                     roleMutation.isPending || activeMutation.isPending || deleteMutation.isPending
                   }
@@ -307,6 +302,23 @@ export function UsersAdminView() {
           busy={createMutation.isPending}
         />
       ) : null}
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title="Delete user?"
+        description={
+          pendingDelete
+            ? `Soft-delete ${pendingDelete.firstName} ${pendingDelete.lastName}? They will lose access immediately.`
+            : ''
+        }
+        confirmLabel="Delete"
+        destructive
+        busy={deleteMutation.isPending}
+        onConfirm={() => pendingDelete && deleteMutation.mutate(pendingDelete.id)}
+        onOpenChange={(open) => {
+          if (!open) setPendingDelete(null);
+        }}
+      />
     </main>
   );
 }

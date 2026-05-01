@@ -2,11 +2,20 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { ChevronDown, ChevronLeft, ChevronRight, ScrollText } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronRight, Loader2, ScrollText } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   Select,
   SelectContent,
@@ -76,6 +85,8 @@ export function AuditView() {
     });
   };
 
+  const [exportOpen, setExportOpen] = useState(false);
+
   const query = useQuery({
     queryKey: ['audit', filters, page, pageSize],
     queryFn: () =>
@@ -84,16 +95,18 @@ export function AuditView() {
       }),
   });
 
-  const exportCsv = async () => {
+  const exportCsv = async (range: { readonly from: string; readonly to: string }) => {
+    const fromIso = new Date(`${range.from}T00:00:00`).toISOString();
+    const toIso = new Date(`${range.to}T23:59:59.999`).toISOString();
     const response = await api.get('/audit-logs/export', {
-      params: cleanParams(filters),
+      params: { ...cleanParams(filters), from: fromIso, to: toIso },
       responseType: 'blob',
     });
     const blob = new Blob([response.data], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `audit-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.download = `audit-${range.from}_${range.to}.csv`;
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -113,7 +126,7 @@ export function AuditView() {
             Every override, publish, swap and assignment.
           </p>
         </div>
-        <Button type="button" variant="outline" onClick={exportCsv}>
+        <Button type="button" variant="outline" onClick={() => setExportOpen(true)}>
           Export CSV
         </Button>
       </header>
@@ -310,7 +323,126 @@ export function AuditView() {
           </Button>
         </div>
       </nav>
+
+      <ExportDialog
+        open={exportOpen}
+        onOpenChange={setExportOpen}
+        defaultFrom={filters.from ?? ''}
+        defaultTo={filters.to ?? ''}
+        onExport={exportCsv}
+      />
     </section>
+  );
+}
+
+interface ExportDialogProps {
+  readonly open: boolean;
+  readonly onOpenChange: (open: boolean) => void;
+  readonly defaultFrom: string;
+  readonly defaultTo: string;
+  readonly onExport: (range: { from: string; to: string }) => Promise<void>;
+}
+
+function ExportDialog({
+  open,
+  onOpenChange,
+  defaultFrom,
+  defaultTo,
+  onExport,
+}: ExportDialogProps) {
+  const [from, setFrom] = useState(defaultFrom);
+  const [to, setTo] = useState(defaultTo);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Reset error/state when the dialog re-opens.
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (prevOpen !== open) {
+    setPrevOpen(open);
+    if (open) {
+      setFrom(defaultFrom);
+      setTo(defaultTo);
+      setError(null);
+    }
+  }
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!from || !to) {
+      setError('Both a start date and an end date are required.');
+      return;
+    }
+    if (from > to) {
+      setError('The start date must be on or before the end date.');
+      return;
+    }
+    setError(null);
+    setBusy(true);
+    try {
+      await onExport({ from, to });
+      onOpenChange(false);
+      toast.success('Audit log exported');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to export audit log';
+      setError(message);
+      toast.error(message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(next) => (busy ? null : onOpenChange(next))}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Export audit log</DialogTitle>
+          <DialogDescription>
+            Select a date range. Both a start and end date are required.
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="export-from">Start date</Label>
+              <Input
+                id="export-from"
+                type="date"
+                value={from}
+                max={to || undefined}
+                onChange={(event) => setFrom(event.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="export-to">End date</Label>
+              <Input
+                id="export-to"
+                type="date"
+                value={to}
+                min={from || undefined}
+                onChange={(event) => setTo(event.target.value)}
+                required
+              />
+            </div>
+          </div>
+          {error ? <p className="text-destructive text-sm">{error}</p> : null}
+          <DialogFooter className="gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={busy}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={busy || !from || !to}>
+              {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Download CSV
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
 

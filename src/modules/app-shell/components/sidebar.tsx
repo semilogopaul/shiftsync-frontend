@@ -28,7 +28,7 @@ export function Sidebar({ user }: SidebarProps) {
           alt="ShiftSync"
           width={800}
           height={320}
-          className="h-[84px] w-auto dark:hidden -ml-4"
+          className="h-[70px] w-auto dark:hidden -ml-1 mt-2"
         />
         <Image
           src="/logo/shiftsync-white-logo.png"
