@@ -117,7 +117,7 @@ export function RequestSwapDialog({ shift, currentUserId, onClose }: Props) {
               ))}
             </select>
             {!candidates.isLoading && eligible.length === 0 ? (
-              <p className="text-muted-foreground text-xs">
+              <p className="text-destructive text-xs">
                 No eligible colleagues found at this location with the required skill.
               </p>
             ) : null}

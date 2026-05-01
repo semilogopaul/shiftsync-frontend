@@ -13,7 +13,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Skeleton } from '@/components/ui/skeleton';
 import { dayName, minutesToLabel } from '@/common/utils/datetime';
 import { messageFromError } from '@/common/utils/error-message';
@@ -203,7 +202,6 @@ function Exceptions({ userId }: { readonly userId: string }) {
     queryFn: () => availabilityService.listExceptionsForUser(userId),
   });
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [available, setAvailable] = useState(false);
   const [reason, setReason] = useState('');
 
   const create = useMutation({
@@ -223,7 +221,7 @@ function Exceptions({ userId }: { readonly userId: string }) {
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     create.mutate({
-      type: available ? 'AVAILABLE' : 'UNAVAILABLE',
+      type: 'UNAVAILABLE',
       startsAt: new Date(`${date}T00:00:00`).toISOString(),
       endsAt: new Date(`${date}T23:59:59`).toISOString(),
       note: reason.trim() || undefined,
@@ -236,8 +234,8 @@ function Exceptions({ userId }: { readonly userId: string }) {
     <div className="border-border/60 bg-card/40 rounded-3xl border p-5">
       <h2 className="text-foreground text-lg font-semibold">One-off exceptions</h2>
       <p className="text-muted-foreground mt-1 text-xs">
-        Mark a specific day as available or unavailable, e.g. for a doctor’s appointment or a
-        one-time pickup shift.
+        Mark a specific day as unavailable, e.g. for a doctor&apos;s appointment or personal
+        commitment.
       </p>
 
       <form
@@ -253,7 +251,7 @@ function Exceptions({ userId }: { readonly userId: string }) {
             onChange={(event) => setDate(event.target.value)}
           />
         </div>
-        <div className="space-y-2">
+        <div className="space-y-2 sm:col-span-2">
           <Label htmlFor="exc-reason">Reason (optional)</Label>
           <Input
             id="exc-reason"
@@ -261,21 +259,6 @@ function Exceptions({ userId }: { readonly userId: string }) {
             onChange={(event) => setReason(event.target.value)}
             placeholder="e.g. doctor visit"
           />
-        </div>
-        <div className="space-y-2">
-          <Label className="invisible" aria-hidden="true">
-            Status
-          </Label>
-          <div className="border-input bg-background/40 flex h-11 items-center gap-2 rounded-lg border px-4">
-            <Checkbox
-              id="exc-available"
-              checked={available}
-              onCheckedChange={(value) => setAvailable(value === true)}
-            />
-            <Label htmlFor="exc-available" className="cursor-pointer text-base font-medium">
-              Available
-            </Label>
-          </div>
         </div>
         <div className="space-y-2">
           <Label className="invisible" aria-hidden="true">
@@ -309,15 +292,7 @@ function Exceptions({ userId }: { readonly userId: string }) {
               <div>
                 <p className="text-foreground text-sm font-medium">
                   {new Date(exc.startsAt).toLocaleDateString()}{' '}
-                  <span
-                    className={
-                      exc.type === 'AVAILABLE'
-                        ? 'text-emerald-600 dark:text-emerald-400'
-                        : 'text-destructive'
-                    }
-                  >
-                    · {exc.type === 'AVAILABLE' ? 'Available' : 'Unavailable'}
-                  </span>
+                  <span className="text-destructive">· Unavailable</span>
                 </p>
                 {exc.note ? <p className="text-muted-foreground text-xs">{exc.note}</p> : null}
               </div>
