@@ -1,4 +1,4 @@
-# ShiftSync Frontend
+# ShiftSync Frontend - https://shiftsync-by-semilogo.netlify.app/
 
 Next.js web app for ShiftSync, the multi-location staff scheduling platform. Provides the manager schedule builder, staff schedule and swap workflows, on-duty dashboard, analytics, notifications, and admin user management.
 
