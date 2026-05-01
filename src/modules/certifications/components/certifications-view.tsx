@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Loader2, MapPin, Plus, ShieldCheck, Trash2, X } from 'lucide-react';
+import { Loader2, MapPin, ShieldCheck, X } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -81,7 +81,6 @@ export function CertificationsView() {
             Show revoked
           </label>
           <Button type="button" onClick={() => setGranting(true)} disabled={!effectiveLocationId}>
-            <Plus className="mr-1 h-4 w-4" aria-hidden="true" />
             Grant
           </Button>
         </div>
@@ -96,13 +95,13 @@ export function CertificationsView() {
         />
       ) : certsQuery.isLoading ? (
         <Loading />
-      ) : (certsQuery.data ?? []).length === 0 ? (
+      ) : (certsQuery.data ?? []).filter((c) => includeHistory || !c.decertifiedAt).length === 0 ? (
         <Empty
           icon={<ShieldCheck className="text-muted-foreground h-6 w-6" aria-hidden="true" />}
           message="Nobody is certified at this location yet."
         />
       ) : (
-        <CertList rows={certsQuery.data ?? []} />
+        <CertList rows={certsQuery.data ?? []} showRevoked={includeHistory} />
       )}
 
       {granting && effectiveLocationId ? (
@@ -137,11 +136,18 @@ function Empty({ icon, message }: { readonly icon: React.ReactNode; readonly mes
   );
 }
 
-function CertList({ rows }: { readonly rows: readonly Certification[] }) {
+function CertList({
+  rows,
+  showRevoked,
+}: {
+  readonly rows: readonly Certification[];
+  readonly showRevoked: boolean;
+}) {
   const mutations = useCertificationMutations();
+  const visible = showRevoked ? rows : rows.filter((c) => !c.decertifiedAt);
   return (
     <ul className="border-border/60 divide-y rounded-2xl border">
-      {rows.map((cert) => {
+      {visible.map((cert) => {
         const revoked = Boolean(cert.decertifiedAt);
         const expired = cert.expiresAt != null && new Date(cert.expiresAt) < new Date();
         return (
@@ -171,8 +177,9 @@ function CertList({ rows }: { readonly rows: readonly Certification[] }) {
             {!revoked ? (
               <Button
                 type="button"
-                variant="ghost"
-                size="icon"
+                variant="outline"
+                size="sm"
+                className="text-destructive border-destructive/40 hover:bg-destructive/10 shrink-0 text-xs"
                 onClick={() => {
                   if (
                     typeof window !== 'undefined' &&
@@ -184,9 +191,11 @@ function CertList({ rows }: { readonly rows: readonly Certification[] }) {
                   mutations.revoke.mutate(cert.id);
                 }}
                 disabled={mutations.revoke.isPending}
-                aria-label="Revoke certification"
               >
-                <Trash2 className="text-destructive h-4 w-4" aria-hidden="true" />
+                {mutations.revoke.isPending ? (
+                  <Loader2 className="mr-1 h-3 w-3 animate-spin" aria-hidden="true" />
+                ) : null}
+                Revoke
               </Button>
             ) : null}
           </li>
