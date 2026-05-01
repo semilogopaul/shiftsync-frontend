@@ -36,8 +36,8 @@ export function LandingHeader() {
       className={cn(
         'fixed inset-x-0 top-0 z-50 transition-all duration-300',
         scrolled
-          ? 'border-b border-border/40 bg-background/80 shadow-sm backdrop-blur-2xl py-3'
-          : 'border-b border-transparent bg-transparent py-4 sm:py-6',
+          ? 'border-b border-border/40 bg-background/80 shadow-sm backdrop-blur-2xl py-2 sm:py-3'
+          : 'border-b border-transparent bg-transparent py-3 sm:py-4 lg:py-6',
       )}
     >
       <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-5 sm:px-6 lg:px-8 transition-all duration-300">
@@ -52,7 +52,7 @@ export function LandingHeader() {
             width={800}
             height={320}
             priority
-            className="h-16 lg:h-16 w-auto transition-opacity group-hover:opacity-80 dark:hidden"
+            className="h-12 sm:h-12 lg:h-14 w-auto transition-opacity group-hover:opacity-80 dark:hidden"
           />
           <Image
             src="/logo/shiftsync-white-logo.png"
@@ -60,7 +60,7 @@ export function LandingHeader() {
             width={720}
             height={320}
             priority
-            className="hidden h-16 lg:h-16 w-auto transition-opacity group-hover:opacity-80 dark:block"
+            className="hidden h-12 sm:h-12 lg:h-14 w-auto transition-opacity group-hover:opacity-80 dark:block"
           />
         </Link>
 
@@ -134,7 +134,7 @@ export function LandingHeader() {
                 width={800}
                 height={320}
                 priority
-                className="h-16 w-auto dark:hidden"
+                className="h-12 w-auto dark:hidden"
               />
               <Image
                 src="/logo/shiftsync-white-logo.png"
@@ -142,7 +142,7 @@ export function LandingHeader() {
                 width={720}
                 height={320}
                 priority
-                className="hidden h-16 w-auto dark:block"
+                className="hidden h-12 w-auto dark:block"
               />
               <button
                 onClick={() => setMenuOpen(false)}
