@@ -1,18 +1,14 @@
-"use client";
+'use client';
 
-import { useMemo, useState, type FormEvent } from "react";
-import { Loader2, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { ValidationFindingsList } from "@/common/components/validation-findings-list";
-import {
-  formatTimeRange,
-  isOvernight,
-  wallTimeInZoneToUtcIso,
-} from "@/common/utils/datetime";
-import type { Shift } from "@/common/types/domain";
-import { useShiftMutations } from "../hooks/use-shifts";
+import { useMemo, useState, type FormEvent } from 'react';
+import { Loader2, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { ValidationFindingsList } from '@/common/components/validation-findings-list';
+import { formatTimeRange, isOvernight, wallTimeInZoneToUtcIso } from '@/common/utils/datetime';
+import type { Shift } from '@/common/types/domain';
+import { useShiftMutations } from '../hooks/use-shifts';
 
 interface Props {
   readonly shift: Shift;
@@ -20,29 +16,29 @@ interface Props {
 }
 
 const shiftDateByDays = (isoDate: string, days: number): string => {
-  const [y, m, d] = isoDate.split("-").map(Number);
+  const [y, m, d] = isoDate.split('-').map(Number);
   const dt = new Date(Date.UTC(y, m - 1, d + days));
   return dt.toISOString().slice(0, 10);
 };
 
 const isoDateInZone = (iso: string, tz: string): string => {
-  const parts = new Intl.DateTimeFormat("en-CA", {
+  const parts = new Intl.DateTimeFormat('en-CA', {
     timeZone: tz,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
   }).format(new Date(iso));
   return parts;
 };
 
 const isoTimeInZone = (iso: string, tz: string): string => {
-  const parts = new Intl.DateTimeFormat("en-GB", {
+  const parts = new Intl.DateTimeFormat('en-GB', {
     timeZone: tz,
-    hour: "2-digit",
-    minute: "2-digit",
+    hour: '2-digit',
+    minute: '2-digit',
     hour12: false,
   }).format(new Date(iso));
-  return parts.replace(/[^0-9:]/g, "");
+  return parts.replace(/[^0-9:]/g, '');
 };
 
 /**
@@ -53,13 +49,13 @@ const isoTimeInZone = (iso: string, tz: string): string => {
  */
 export function EditShiftDialog({ shift, onClose }: Props) {
   const mutations = useShiftMutations();
-  const tz = shift.location.timezone;
+  const tz = shift.location?.timezone ?? 'UTC';
 
   const [date, setDate] = useState(() => isoDateInZone(shift.startsAt, tz));
   const [startTime, setStartTime] = useState(() => isoTimeInZone(shift.startsAt, tz));
   const [endTime, setEndTime] = useState(() => isoTimeInZone(shift.endsAt, tz));
   const [headcount, setHeadcount] = useState(shift.headcount);
-  const [notes, setNotes] = useState(shift.notes ?? "");
+  const [notes, setNotes] = useState(shift.notes ?? '');
 
   const overnight = isOvernight(startTime, endTime);
   const preview = useMemo(() => {
@@ -173,8 +169,7 @@ export function EditShiftDialog({ shift, onClose }: Props) {
 
           {preview ? (
             <p className="border-border/60 bg-muted/40 text-muted-foreground rounded-lg border px-3 py-2 text-xs">
-              Will save as {preview.label} ({tz})
-              {overnight ? " — overnight, ends next day" : ""}
+              Will save as {preview.label} ({tz}){overnight ? ' — overnight, ends next day' : ''}
             </p>
           ) : null}
 

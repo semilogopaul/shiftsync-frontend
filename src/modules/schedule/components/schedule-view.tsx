@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useMemo, useState } from "react";
-import { format, isSameDay } from "date-fns";
+import { useMemo, useState } from 'react';
+import { format, isSameDay } from 'date-fns';
 import {
   CalendarDays,
   ChevronLeft,
@@ -10,43 +10,38 @@ import {
   Plus,
   Send,
   Sparkles,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { cn } from "@/lib/utils";
-import { useCurrentUser } from "@/modules/auth";
-import { useLocations } from "@/modules/locations";
-import { formatTimeRange } from "@/common/utils/datetime";
-import type { Shift } from "@/common/types/domain";
-import {
-  daysInWeek,
-  formatWeekLabel,
-  nextWeek,
-  previousWeek,
-  weekContaining,
-} from "../utils/week";
-import { useShifts, useShiftMutations } from "../hooks/use-shifts";
-import { ShiftDrawer } from "./shift-drawer";
-import { CreateShiftDialog } from "./create-shift-dialog";
-import { toast } from "sonner";
+} from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
+import { useCurrentUser } from '@/modules/auth';
+import { useLocations } from '@/modules/locations';
+import { formatTimeRange } from '@/common/utils/datetime';
+import type { Location, Shift } from '@/common/types/domain';
+import { daysInWeek, formatWeekLabel, nextWeek, previousWeek, weekContaining } from '../utils/week';
+import { useShifts, useShiftMutations } from '../hooks/use-shifts';
+import { ShiftDrawer } from './shift-drawer';
+import { CreateShiftDialog } from './create-shift-dialog';
+import { toast } from 'sonner';
 
 export function ScheduleView() {
   const { data: user } = useCurrentUser();
   const { data: locations = [] } = useLocations();
-  const [locationId, setLocationId] = useState<string | "all">("all");
+  const [locationId, setLocationId] = useState<string | 'all'>('all');
   const [range, setRange] = useState(() => weekContaining(new Date()));
   const [selectedShiftId, setSelectedShiftId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
 
   const params = useMemo(
     () => ({
-      locationId: locationId === "all" ? undefined : locationId,
+      locationId: locationId === 'all' ? undefined : locationId,
       from: range.start.toISOString(),
       to: range.end.toISOString(),
     }),
@@ -55,14 +50,14 @@ export function ScheduleView() {
 
   const { data: shifts = [], isLoading } = useShifts(params);
   const days = daysInWeek(range);
-  const canManage = user?.role === "ADMIN" || user?.role === "MANAGER";
+  const canManage = user?.role === 'ADMIN' || user?.role === 'MANAGER';
 
   const mutations = useShiftMutations();
   // Only DRAFT shifts in the visible window are eligible for bulk publish.
   // Backend enforces manager-of-location, so the count we show is best-effort
   // and the response tells us how many were actually transitioned.
   const draftIds = useMemo(
-    () => shifts.filter((s) => s.status === "DRAFT").map((s) => s.id),
+    () => shifts.filter((s) => s.status === 'DRAFT').map((s) => s.id),
     [shifts],
   );
   const handlePublishWeek = () => {
@@ -72,17 +67,17 @@ export function ScheduleView() {
         const n = result.publishedIds.length;
         const skipped = draftIds.length - n;
         if (n === 0) {
-          toast("No shifts published", {
-            description: "Nothing eligible — they may already be published or out of your scope.",
+          toast('No shifts published', {
+            description: 'Nothing eligible — they may already be published or out of your scope.',
           });
         } else {
           toast.success(
-            `Published ${n} shift${n === 1 ? "" : "s"}` +
-              (skipped > 0 ? ` · ${skipped} skipped` : ""),
+            `Published ${n} shift${n === 1 ? '' : 's'}` +
+              (skipped > 0 ? ` · ${skipped} skipped` : ''),
           );
         }
       },
-      onError: () => toast.error("Could not publish week"),
+      onError: () => toast.error('Could not publish week'),
     });
   };
 
@@ -91,9 +86,7 @@ export function ScheduleView() {
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Schedule</h1>
-          <p className="text-muted-foreground text-sm">
-            {formatWeekLabel(range)}
-          </p>
+          <p className="text-muted-foreground text-sm">{formatWeekLabel(range)}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Select value={locationId} onValueChange={setLocationId}>
@@ -149,13 +142,11 @@ export function ScheduleView() {
                 variant="outline"
                 size="sm"
                 onClick={handlePublishWeek}
-                disabled={
-                  draftIds.length === 0 || mutations.publishMany.isPending
-                }
+                disabled={draftIds.length === 0 || mutations.publishMany.isPending}
                 title={
                   draftIds.length === 0
-                    ? "Nothing to publish in this week"
-                    : `Publish ${draftIds.length} draft shift${draftIds.length === 1 ? "" : "s"}`
+                    ? 'Nothing to publish in this week'
+                    : `Publish ${draftIds.length} draft shift${draftIds.length === 1 ? '' : 's'}`
                 }
               >
                 {mutations.publishMany.isPending ? (
@@ -163,7 +154,7 @@ export function ScheduleView() {
                 ) : (
                   <Send className="mr-1 h-4 w-4" aria-hidden="true" />
                 )}
-                Publish week{draftIds.length > 0 ? ` (${draftIds.length})` : ""}
+                Publish week{draftIds.length > 0 ? ` (${draftIds.length})` : ''}
               </Button>
               <Button type="button" size="sm" onClick={() => setCreating(true)}>
                 <Plus className="mr-1 h-4 w-4" aria-hidden="true" />
@@ -175,9 +166,16 @@ export function ScheduleView() {
       </header>
 
       {isLoading ? (
-        <div className="text-muted-foreground flex items-center gap-2 py-12">
-          <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-          Loading schedule…
+        <div className="border-border/60 bg-card/40 overflow-x-auto rounded-3xl border p-4">
+          <div className="grid min-w-[840px] grid-cols-7 gap-2">
+            {Array.from({ length: 7 }).map((_, i) => (
+              <div key={i} className="space-y-2">
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-24 w-full rounded-xl" />
+                <Skeleton className="h-24 w-full rounded-xl" />
+              </div>
+            ))}
+          </div>
         </div>
       ) : (
         <div className="border-border/60 bg-card/40 overflow-x-auto rounded-3xl border">
@@ -191,36 +189,40 @@ export function ScheduleView() {
               return (
                 <div
                   key={day.toISOString()}
-                  className="border-border/40 min-h-[420px] border-r last:border-r-0"
+                  className={cn(
+                    'flex flex-col border-r border-border/40 min-h-[480px] last:border-r-0 relative group/day',
+                    isToday ? 'bg-primary/[0.03] ring-1 ring-inset ring-primary/20' : '',
+                  )}
                 >
                   <div
                     className={cn(
-                      "border-border/40 flex items-baseline justify-between border-b px-3 py-2",
-                      isToday ? "bg-primary/5" : "bg-muted/30",
+                      'flex flex-col items-center justify-center border-b border-border/40 py-3 gap-0.5',
+                      isToday ? 'bg-primary/10' : 'bg-transparent',
                     )}
                   >
-                    <span className="text-xs font-semibold uppercase tracking-wider">
-                      {format(day, "EEE")}
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                      {format(day, 'EEE')}
                     </span>
                     <span
                       className={cn(
-                        "text-sm font-medium",
-                        isToday ? "text-primary" : "text-foreground",
+                        'flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold',
+                        isToday
+                          ? 'bg-primary shadow-sm shadow-primary/30 text-primary-foreground'
+                          : 'text-foreground',
                       )}
                     >
-                      {format(day, "d")}
+                      {format(day, 'd')}
                     </span>
                   </div>
                   <ul className="space-y-2 p-2">
                     {dayShifts.length === 0 ? (
-                      <li className="text-muted-foreground/60 px-2 py-4 text-center text-xs">
-                        —
-                      </li>
+                      <li className="text-muted-foreground/60 px-2 py-4 text-center text-xs">—</li>
                     ) : (
                       dayShifts.map((shift) => (
                         <ShiftPill
                           key={shift.id}
                           shift={shift}
+                          locations={locations}
                           onSelect={() => setSelectedShiftId(shift.id)}
                         />
                       ))
@@ -234,27 +236,24 @@ export function ScheduleView() {
       )}
 
       {selectedShiftId ? (
-        <ShiftDrawer
-          shiftId={selectedShiftId}
-          onClose={() => setSelectedShiftId(null)}
-        />
+        <ShiftDrawer shiftId={selectedShiftId} onClose={() => setSelectedShiftId(null)} />
       ) : null}
 
-      {creating ? (
-        <CreateShiftDialog onClose={() => setCreating(false)} />
-      ) : null}
+      {creating ? <CreateShiftDialog onClose={() => setCreating(false)} /> : null}
     </section>
   );
 }
 
 interface ShiftPillProps {
   readonly shift: Shift;
+  readonly locations: readonly Location[];
   readonly onSelect: () => void;
 }
 
-function ShiftPill({ shift, onSelect }: ShiftPillProps) {
+function ShiftPill({ shift, locations, onSelect }: ShiftPillProps) {
   const filled = shift.assignments.length;
   const understaffed = filled < shift.headcount;
+  const location = shift.location ?? locations.find((l) => l.id === shift.locationId);
 
   return (
     <li>
@@ -262,36 +261,49 @@ function ShiftPill({ shift, onSelect }: ShiftPillProps) {
         type="button"
         onClick={onSelect}
         className={cn(
-          "group hover:border-primary/40 hover:bg-primary/5 w-full rounded-xl border bg-card p-2.5 text-left transition-colors",
+          'group relative flex h-[124px] w-full flex-col items-start justify-between gap-1.5 overflow-hidden rounded-xl border bg-card p-3.5 text-left shadow-sm ring-1 ring-inset ring-black/5 dark:ring-white/5 transition-all hover:-translate-y-[2px] hover:shadow-md',
           understaffed
-            ? "border-amber-500/40"
-            : "border-border/60",
+            ? 'border-amber-500/30 bg-amber-500/5 hover:border-amber-500/50 hover:bg-amber-500/10'
+            : 'border-border/60 hover:border-primary/40 hover:bg-primary/5',
         )}
       >
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-foreground truncate text-xs font-semibold">
-            {shift.location.name}
+        <div
+          className={cn(
+            'absolute inset-y-0 left-0 w-1',
+            understaffed ? 'bg-amber-500/50' : 'bg-primary/50',
+          )}
+        />
+
+        <div className="flex w-full items-start justify-between gap-2">
+          <span className="text-foreground truncate text-[13px] font-bold">
+            {location?.name ?? '—'}
           </span>
           {shift.isPremium ? (
-            <Sparkles className="h-3 w-3 text-fuchsia-500" aria-label="Premium shift" />
+            <Sparkles
+              className="h-3.5 w-3.5 shrink-0 text-fuchsia-500"
+              aria-label="Premium shift"
+            />
           ) : null}
         </div>
-        <p className="text-muted-foreground mt-1 text-xs">
-          {formatTimeRange(shift.startsAt, shift.endsAt, shift.location.timezone)}
+
+        <p className="text-muted-foreground/90 text-xs font-medium">
+          {formatTimeRange(shift.startsAt, shift.endsAt, location?.timezone ?? 'UTC')}
         </p>
-        <div className="mt-1.5 flex items-center justify-between">
+
+        <div className="mt-1 flex w-full items-center justify-between gap-2 border-t border-border/40 pt-2.5">
           <span
             className={cn(
-              "text-[11px] font-semibold",
-              understaffed ? "text-amber-600 dark:text-amber-400" : "text-emerald-600 dark:text-emerald-400",
+              'inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold',
+              understaffed
+                ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400'
+                : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400',
             )}
           >
-            {filled}/{shift.headcount}
-            {shift.skill ? ` · ${shift.skill.name}` : ""}
+            {filled}/{shift.headcount} {shift.skill ? `· ${shift.skill.name}` : ''}
           </span>
-          {shift.status !== "PUBLISHED" ? (
-            <span className="text-muted-foreground border-border/60 rounded border px-1.5 text-[10px] uppercase tracking-wider">
-              {shift.status === "DRAFT" ? "Draft" : shift.status}
+          {shift.status !== 'PUBLISHED' ? (
+            <span className="text-muted-foreground bg-muted/50 rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider">
+              {shift.status === 'DRAFT' ? 'DRAFT' : shift.status}
             </span>
           ) : null}
         </div>

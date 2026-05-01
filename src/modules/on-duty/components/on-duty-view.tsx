@@ -1,22 +1,20 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Activity, Loader2, MapPin } from "lucide-react";
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Activity, MapPin } from 'lucide-react';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { apiGet } from "@/lib/api-client";
-import { useLocations } from "@/modules/locations";
-import {
-  formatTimeRange,
-  formatRelative,
-} from "@/common/utils/datetime";
-import type { Shift } from "@/common/types/domain";
+} from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
+import { apiGet } from '@/lib/api-client';
+import { useLocations } from '@/modules/locations';
+import { formatTimeRange, formatRelative } from '@/common/utils/datetime';
+import type { Shift } from '@/common/types/domain';
 
 interface OnDutyEntry {
   readonly clockEventId: string;
@@ -34,19 +32,18 @@ interface OnDutyEntry {
 
 const onDutyService = {
   list: (locationId?: string) =>
-    apiGet<OnDutyEntry[]>("/on-duty", {
+    apiGet<OnDutyEntry[]>('/on-duty', {
       params: locationId ? { locationId } : undefined,
     }),
 };
 
 export function OnDutyView() {
   const { data: locations = [] } = useLocations();
-  const [locationId, setLocationId] = useState<string | "all">("all");
+  const [locationId, setLocationId] = useState<string | 'all'>('all');
 
   const query = useQuery({
-    queryKey: ["on-duty", locationId],
-    queryFn: () =>
-      onDutyService.list(locationId === "all" ? undefined : locationId),
+    queryKey: ['on-duty', locationId],
+    queryFn: () => onDutyService.list(locationId === 'all' ? undefined : locationId),
     // Realtime: invalidated automatically by the socket bridge on
     // shift.assigned / shift.unassigned / clock.in / clock.out.
     refetchOnWindowFocus: true,
@@ -83,16 +80,15 @@ export function OnDutyView() {
       </header>
 
       {query.isLoading ? (
-        <div className="text-muted-foreground flex items-center gap-2 py-12">
-          <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-          Loading…
+        <div className="grid gap-4 md:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-40 rounded-3xl" />
+          ))}
         </div>
       ) : items.length === 0 ? (
         <div className="border-border/60 bg-card/40 flex flex-col items-center gap-3 rounded-3xl border py-16 text-center">
           <Activity className="text-muted-foreground h-8 w-8" aria-hidden="true" />
-          <p className="text-foreground text-sm font-medium">
-            Nobody clocked in right now.
-          </p>
+          <p className="text-foreground text-sm font-medium">Nobody clocked in right now.</p>
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
@@ -129,7 +125,7 @@ export function OnDutyView() {
                           {formatTimeRange(
                             entry.shift.startsAt,
                             entry.shift.endsAt,
-                            entry.shift.location.timezone,
+                            entry.shift.location?.timezone ?? 'UTC',
                           )}
                         </p>
                       </div>

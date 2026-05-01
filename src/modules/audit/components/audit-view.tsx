@@ -1,18 +1,19 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, ChevronLeft, ChevronRight, Download, Loader2, ScrollText } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { ChevronDown, ChevronLeft, ChevronRight, ScrollText } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -20,11 +21,11 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { apiGetPage, api } from "@/lib/api-client";
-import { useLocations } from "@/modules/locations";
-import { formatRelative } from "@/common/utils/datetime";
-import type { AuditLogEntry } from "@/common/types/domain";
+} from '@/components/ui/table';
+import { apiGetPage, api } from '@/lib/api-client';
+import { useLocations } from '@/modules/locations';
+import { formatRelative } from '@/common/utils/datetime';
+import type { AuditLogEntry } from '@/common/types/domain';
 
 interface ListParams {
   readonly entityType?: string;
@@ -33,44 +34,38 @@ interface ListParams {
   readonly to?: string;
 }
 
-const ENTITY_TYPES = [
-  "all",
-  "Shift",
-  "Assignment",
-  "SwapRequest",
-  "Drop",
-  "User",
-  "Location",
-];
+const ENTITY_TYPES = ['all', 'Shift', 'Assignment', 'SwapRequest', 'Drop', 'User', 'Location'];
 
 const readReason = (meta?: Record<string, unknown>): string | null => {
   const value = meta?.reason;
-  return typeof value === "string" && value.length > 0 ? value : null;
+  return typeof value === 'string' && value.length > 0 ? value : null;
 };
 
 const cleanParams = (input: object) =>
   Object.fromEntries(
     Object.entries(input).filter(
-      ([, value]) => value !== undefined && value !== "" && value !== "all",
+      ([, value]) => value !== undefined && value !== '' && value !== 'all',
     ),
   );
 
 export function AuditView() {
   const { data: locations = [] } = useLocations();
   const [filters, setFilters] = useState<ListParams & { entityType: string; locationId: string }>({
-    entityType: "all",
-    locationId: "all",
-    from: "",
-    to: "",
+    entityType: 'all',
+    locationId: 'all',
+    from: '',
+    to: '',
   });
   const [page, setPage] = useState(1);
   const pageSize = 25;
   // Reset to page 1 whenever the filters change so the user doesn't end up
   // on an empty trailing page.
   const filtersKey = JSON.stringify(filters);
-  useEffect(() => {
+  const [prevFiltersKey, setPrevFiltersKey] = useState(filtersKey);
+  if (prevFiltersKey !== filtersKey) {
+    setPrevFiltersKey(filtersKey);
     setPage(1);
-  }, [filtersKey]);
+  }
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const toggle = (id: string) => {
     setExpanded((prev) => {
@@ -82,21 +77,21 @@ export function AuditView() {
   };
 
   const query = useQuery({
-    queryKey: ["audit", filters, page, pageSize],
+    queryKey: ['audit', filters, page, pageSize],
     queryFn: () =>
-      apiGetPage<AuditLogEntry>("/audit-logs", {
+      apiGetPage<AuditLogEntry>('/audit-logs', {
         params: { ...cleanParams(filters), page, pageSize },
       }),
   });
 
   const exportCsv = async () => {
-    const response = await api.get("/audit-logs/export", {
+    const response = await api.get('/audit-logs/export', {
       params: cleanParams(filters),
-      responseType: "blob",
+      responseType: 'blob',
     });
-    const blob = new Blob([response.data], { type: "text/csv" });
+    const blob = new Blob([response.data], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
+    const link = document.createElement('a');
     link.href = url;
     link.download = `audit-${new Date().toISOString().slice(0, 10)}.csv`;
     document.body.appendChild(link);
@@ -119,41 +114,36 @@ export function AuditView() {
           </p>
         </div>
         <Button type="button" variant="outline" onClick={exportCsv}>
-          <Download className="mr-1.5 h-4 w-4" aria-hidden="true" />
           Export CSV
         </Button>
       </header>
 
       <div className="border-border/60 bg-card/40 grid gap-3 rounded-2xl border p-4 sm:grid-cols-4">
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           <Label htmlFor="entityType">Entity</Label>
           <Select
             value={filters.entityType}
-            onValueChange={(value) =>
-              setFilters((prev) => ({ ...prev, entityType: value }))
-            }
+            onValueChange={(value) => setFilters((prev) => ({ ...prev, entityType: value }))}
           >
-            <SelectTrigger id="entityType">
+            <SelectTrigger id="entityType" className="h-11 w-full px-4 text-base font-medium">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               {ENTITY_TYPES.map((type) => (
                 <SelectItem key={type} value={type}>
-                  {type === "all" ? "All entities" : type}
+                  {type === 'all' ? 'All entities' : type}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           <Label htmlFor="loc">Location</Label>
           <Select
             value={filters.locationId}
-            onValueChange={(value) =>
-              setFilters((prev) => ({ ...prev, locationId: value }))
-            }
+            onValueChange={(value) => setFilters((prev) => ({ ...prev, locationId: value }))}
           >
-            <SelectTrigger id="loc">
+            <SelectTrigger id="loc" className="h-11 w-full px-4 text-base font-medium">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -166,26 +156,22 @@ export function AuditView() {
             </SelectContent>
           </Select>
         </div>
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           <Label htmlFor="from">From</Label>
           <Input
             id="from"
             type="date"
             value={filters.from}
-            onChange={(event) =>
-              setFilters((prev) => ({ ...prev, from: event.target.value }))
-            }
+            onChange={(event) => setFilters((prev) => ({ ...prev, from: event.target.value }))}
           />
         </div>
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           <Label htmlFor="to">To</Label>
           <Input
             id="to"
             type="date"
             value={filters.to}
-            onChange={(event) =>
-              setFilters((prev) => ({ ...prev, to: event.target.value }))
-            }
+            onChange={(event) => setFilters((prev) => ({ ...prev, to: event.target.value }))}
           />
         </div>
       </div>
@@ -204,14 +190,13 @@ export function AuditView() {
           </TableHeader>
           <TableBody>
             {query.isLoading ? (
-              <TableRow>
-                <TableCell colSpan={6}>
-                  <span className="text-muted-foreground inline-flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                    Loading…
-                  </span>
-                </TableCell>
-              </TableRow>
+              Array.from({ length: 6 }).map((_, i) => (
+                <TableRow key={`sk-${i}`}>
+                  <TableCell colSpan={6}>
+                    <Skeleton className="h-8 w-full" />
+                  </TableCell>
+                </TableRow>
+              ))
             ) : rows.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6}>
@@ -234,7 +219,7 @@ export function AuditView() {
                           <button
                             type="button"
                             onClick={() => toggle(entry.id)}
-                            aria-label={isOpen ? "Collapse" : "Expand"}
+                            aria-label={isOpen ? 'Collapse' : 'Expand'}
                             className="text-muted-foreground hover:text-foreground"
                           >
                             {isOpen ? (
@@ -251,19 +236,17 @@ export function AuditView() {
                       <TableCell className="text-sm">
                         {entry.actor
                           ? `${entry.actor.firstName} ${entry.actor.lastName}`
-                          : "system"}
+                          : 'system'}
                       </TableCell>
-                      <TableCell className="text-sm font-medium">
-                        {entry.action}
-                      </TableCell>
+                      <TableCell className="text-sm font-medium">{entry.action}</TableCell>
                       <TableCell className="text-muted-foreground text-xs">
                         {entry.entityType}
-                        <span className="ml-1 opacity-60">
-                          #{entry.entityId.slice(0, 8)}
-                        </span>
+                        {entry.entityId ? (
+                          <span className="ml-1 opacity-60">#{entry.entityId.slice(0, 8)}</span>
+                        ) : null}
                       </TableCell>
                       <TableCell className="text-muted-foreground max-w-xs truncate text-xs">
-                        {readReason(entry.meta) ?? "—"}
+                        {readReason(entry.meta) ?? '—'}
                       </TableCell>
                     </TableRow>
                     {isOpen && canExpand ? (
@@ -273,9 +256,9 @@ export function AuditView() {
                           <ul className="space-y-1 py-1 text-xs">
                             {diff.map((row) => (
                               <li key={row.key} className="font-mono">
-                                <span className="text-muted-foreground">{row.key}:</span>{" "}
+                                <span className="text-muted-foreground">{row.key}:</span>{' '}
                                 <span className="text-destructive line-through">{row.before}</span>
-                                {" → "}
+                                {' → '}
                                 <span className="text-emerald-600 dark:text-emerald-400">
                                   {row.after}
                                 </span>
@@ -301,8 +284,8 @@ export function AuditView() {
       >
         <span className="text-muted-foreground">
           {total === 0
-            ? "No entries"
-            : `Page ${page} of ${totalPages} · ${total} entr${total === 1 ? "y" : "ies"}`}
+            ? 'No entries'
+            : `Page ${page} of ${totalPages} · ${total} entr${total === 1 ? 'y' : 'ies'}`}
         </span>
         <div className="flex items-center gap-1">
           <Button
@@ -338,11 +321,11 @@ interface DiffRow {
 }
 
 const isObject = (v: unknown): v is object =>
-  v !== null && typeof v === "object" && !Array.isArray(v);
+  v !== null && typeof v === 'object' && !Array.isArray(v);
 
 const stringify = (v: unknown): string => {
-  if (v === null || v === undefined) return "—";
-  if (typeof v === "string") return v;
+  if (v === null || v === undefined) return '—';
+  if (typeof v === 'string') return v;
   return JSON.stringify(v);
 };
 

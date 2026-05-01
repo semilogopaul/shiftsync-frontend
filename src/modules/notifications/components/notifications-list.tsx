@@ -1,41 +1,41 @@
-"use client";
+'use client';
 
-import Link from "next/link";
+import Link from 'next/link';
 import {
   Bell,
   CalendarClock,
   CheckCheck,
   Clock3,
-  Loader2,
   Repeat,
   ShieldAlert,
   Sparkles,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { formatRelative } from "@/common/utils/datetime";
-import type { NotificationItem } from "@/common/types/domain";
-import { useNotifications } from "../hooks/use-notifications";
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
+import { formatRelative } from '@/common/utils/datetime';
+import type { NotificationItem } from '@/common/types/domain';
+import { useNotifications } from '../hooks/use-notifications';
 
 /** Resolves a deep-link target from the notification's payload. */
 function deepLink(item: NotificationItem): string | null {
   const payload = item.payload ?? {};
-  const shiftId = typeof payload.shiftId === "string" ? payload.shiftId : null;
-  const swapId = typeof payload.swapId === "string" ? payload.swapId : null;
-  const dropId = typeof payload.dropId === "string" ? payload.dropId : null;
+  const shiftId = typeof payload.shiftId === 'string' ? payload.shiftId : null;
+  const swapId = typeof payload.swapId === 'string' ? payload.swapId : null;
+  const dropId = typeof payload.dropId === 'string' ? payload.dropId : null;
   if (swapId || dropId) return `/swaps`;
   if (shiftId) return `/schedule?shiftId=${shiftId}`;
   return null;
 }
 
 function iconFor(type: string) {
-  if (type.startsWith("SWAP")) return Repeat;
-  if (type.startsWith("DROP")) return Repeat;
-  if (type.includes("OVERTIME")) return ShieldAlert;
-  if (type.includes("CALLOUT")) return ShieldAlert;
-  if (type.includes("CLOCK")) return Clock3;
-  if (type.includes("PUBLISH") || type.includes("SHIFT")) return CalendarClock;
-  if (type.includes("PREMIUM")) return Sparkles;
+  if (type.startsWith('SWAP')) return Repeat;
+  if (type.startsWith('DROP')) return Repeat;
+  if (type.includes('OVERTIME')) return ShieldAlert;
+  if (type.includes('CALLOUT')) return ShieldAlert;
+  if (type.includes('CLOCK')) return Clock3;
+  if (type.includes('PUBLISH') || type.includes('SHIFT')) return CalendarClock;
+  if (type.includes('PREMIUM')) return Sparkles;
   return Bell;
 }
 
@@ -66,9 +66,10 @@ export function NotificationsList() {
       </header>
 
       {list.isLoading ? (
-        <div className="text-muted-foreground flex items-center gap-2 py-12">
-          <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-          Loading…
+        <div className="space-y-2">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-16 w-full rounded-2xl" />
+          ))}
         </div>
       ) : items.length === 0 ? (
         <div className="border-border/60 bg-card/50 flex flex-col items-center gap-3 rounded-3xl border py-16 text-center">
@@ -91,17 +92,15 @@ export function NotificationsList() {
                 <span
                   aria-hidden="true"
                   className={cn(
-                    "border-border/60 bg-muted/40 mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border",
-                    unread ? "text-primary" : "text-muted-foreground",
+                    'border-border/60 bg-muted/40 mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border',
+                    unread ? 'text-primary' : 'text-muted-foreground',
                   )}
                 >
                   <Icon className="h-4 w-4" aria-hidden="true" />
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="text-foreground text-sm font-medium">{item.title}</p>
-                  <p className="text-muted-foreground mt-1 text-sm leading-relaxed">
-                    {item.body}
-                  </p>
+                  <p className="text-muted-foreground mt-1 text-sm leading-relaxed">{item.body}</p>
                   <p className="text-muted-foreground mt-2 text-xs">
                     {formatRelative(item.createdAt)}
                   </p>
@@ -112,8 +111,8 @@ export function NotificationsList() {
               <li
                 key={item.id}
                 className={cn(
-                  "flex items-start gap-4 p-5 transition-colors",
-                  unread ? "bg-primary/5" : "bg-transparent",
+                  'flex items-start gap-4 p-5 transition-colors',
+                  unread ? 'bg-primary/5' : 'bg-transparent',
                 )}
               >
                 {href ? (

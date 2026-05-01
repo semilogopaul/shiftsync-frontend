@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { useState, type FormEvent } from "react";
-import { Loader2, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { ValidationFindingsList } from "@/common/components/validation-findings-list";
-import { formatTimeRange } from "@/common/utils/datetime";
-import type { Shift } from "@/common/types/domain";
-import { useSwapMutations, usePendingCounts } from "../hooks/use-swaps";
+import { useState, type FormEvent } from 'react';
+import { Loader2, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { ValidationFindingsList } from '@/common/components/validation-findings-list';
+import { formatTimeRange } from '@/common/utils/datetime';
+import type { Shift } from '@/common/types/domain';
+import { useSwapMutations, usePendingCounts } from '../hooks/use-swaps';
 
 interface Props {
   readonly shift: Shift;
@@ -25,15 +25,16 @@ const MAX_PENDING = 3;
 export function DropShiftDialog({ shift, onClose }: Props) {
   const swapMutations = useSwapMutations();
   const pending = usePendingCounts();
-  const [reason, setReason] = useState<string>("");
+  const [reason, setReason] = useState<string>('');
 
-  const hoursUntilStart =
-    (new Date(shift.startsAt).getTime() - Date.now()) / 3_600_000;
+  // Capture "now" once per mount via lazy state init so the value is stable across re-renders.
+  const [now] = useState(() => Date.now());
+  const hoursUntilStart = (new Date(shift.startsAt).getTime() - now) / 3_600_000;
   const isUrgent = hoursUntilStart < 24;
 
   const atLimit =
-    typeof pending.data?.total === "number" &&
-    typeof pending.data?.limit === "number" &&
+    typeof pending.data?.total === 'number' &&
+    typeof pending.data?.limit === 'number' &&
     pending.data.total >= pending.data.limit;
   const limit = pending.data?.limit ?? MAX_PENDING;
 
@@ -59,8 +60,8 @@ export function DropShiftDialog({ shift, onClose }: Props) {
           <div>
             <h2 className="text-xl font-semibold tracking-tight">Drop shift</h2>
             <p className="text-muted-foreground mt-1 text-sm">
-              {formatTimeRange(shift.startsAt, shift.endsAt, shift.location.timezone)} ·{" "}
-              {shift.location.name}
+              {formatTimeRange(shift.startsAt, shift.endsAt, shift.location?.timezone ?? 'UTC')} ·{' '}
+              {shift.location?.name ?? '—'}
             </p>
           </div>
           <Button type="button" variant="ghost" size="icon" onClick={onClose} aria-label="Close">

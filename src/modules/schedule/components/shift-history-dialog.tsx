@@ -1,11 +1,12 @@
-"use client";
+'use client';
 
-import { useQuery } from "@tanstack/react-query";
-import { Loader2, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { formatRelative } from "@/common/utils/datetime";
-import { shiftsService } from "@/modules/schedule/services/shifts-service";
-import type { AuditLogEntry } from "@/common/types/domain";
+import { useQuery } from '@tanstack/react-query';
+import { X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { formatRelative } from '@/common/utils/datetime';
+import { shiftsService } from '@/modules/schedule/services/shifts-service';
+import type { AuditLogEntry } from '@/common/types/domain';
 
 /**
  * Per-shift audit history. Required by Req 9 — "managers can view the history
@@ -19,7 +20,7 @@ interface Props {
 
 export function ShiftHistoryDialog({ shiftId, onClose }: Props) {
   const query = useQuery({
-    queryKey: ["shifts", "history", shiftId],
+    queryKey: ['shifts', 'history', shiftId],
     queryFn: () => shiftsService.history(shiftId),
   });
 
@@ -44,8 +45,10 @@ export function ShiftHistoryDialog({ shiftId, onClose }: Props) {
           </Button>
         </header>
         {query.isLoading ? (
-          <div className="text-muted-foreground flex items-center gap-2 py-12">
-            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> Loading…
+          <div className="space-y-2">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-16 w-full rounded-2xl" />
+            ))}
           </div>
         ) : query.data && query.data.length > 0 ? (
           <ul className="space-y-3">
@@ -62,14 +65,12 @@ export function ShiftHistoryDialog({ shiftId, onClose }: Props) {
 }
 
 function HistoryEntry({ entry }: { entry: AuditLogEntry }) {
-  const actorName = entry.actor
-    ? `${entry.actor.firstName} ${entry.actor.lastName}`
-    : "System";
+  const actorName = entry.actor ? `${entry.actor.firstName} ${entry.actor.lastName}` : 'System';
   const diff = computeDiff(entry.before, entry.after);
   return (
     <li className="border-border/60 rounded-xl border p-3">
       <div className="flex items-baseline justify-between gap-3">
-        <p className="text-sm font-medium">{entry.action.replace(/_/g, " ")}</p>
+        <p className="text-sm font-medium">{entry.action.replace(/_/g, ' ')}</p>
         <span className="text-muted-foreground text-xs">{formatRelative(entry.createdAt)}</span>
       </div>
       <p className="text-muted-foreground mt-0.5 text-xs">by {actorName}</p>
@@ -77,9 +78,9 @@ function HistoryEntry({ entry }: { entry: AuditLogEntry }) {
         <ul className="bg-muted/40 mt-2 rounded-md p-2 text-xs">
           {diff.map((d) => (
             <li key={d.key} className="font-mono">
-              <span className="text-muted-foreground">{d.key}:</span>{" "}
+              <span className="text-muted-foreground">{d.key}:</span>{' '}
               <span className="text-destructive line-through">{d.before}</span>
-              {" → "}
+              {' → '}
               <span className="text-emerald-600 dark:text-emerald-400">{d.after}</span>
             </li>
           ))}
@@ -113,10 +114,10 @@ function computeDiff(before: unknown, after: unknown): DiffRow[] {
 }
 
 const isObject = (v: unknown): v is object =>
-  v !== null && typeof v === "object" && !Array.isArray(v);
+  v !== null && typeof v === 'object' && !Array.isArray(v);
 
 const stringify = (v: unknown): string => {
-  if (v === null || v === undefined) return "—";
-  if (typeof v === "string") return v;
+  if (v === null || v === undefined) return '—';
+  if (typeof v === 'string') return v;
   return JSON.stringify(v);
 };

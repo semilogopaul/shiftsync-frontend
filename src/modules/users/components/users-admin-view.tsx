@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMemo, useState, type FormEvent } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ChevronLeft,
   ChevronRight,
@@ -12,18 +12,18 @@ import {
   UserCog,
   Users as UsersIcon,
   X,
-} from "lucide-react";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+} from 'lucide-react';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -31,31 +31,32 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { ApiError } from "@/lib/api-client";
+} from '@/components/ui/table';
+import { Skeleton } from '@/components/ui/skeleton';
+import { ApiError } from '@/lib/api-client';
 import {
   usersAdminService,
   type AdminCreateUserInput,
   type AdminUser,
-} from "@/modules/users/services/users-admin-service";
-import type { UserRole } from "@/common/types/user";
+} from '@/modules/users/services/users-admin-service';
+import type { UserRole } from '@/common/types/user';
 
 const ROLE_OPTIONS: ReadonlyArray<{ value: UserRole; label: string }> = [
-  { value: "ADMIN", label: "Admin" },
-  { value: "MANAGER", label: "Manager" },
-  { value: "EMPLOYEE", label: "Staff" },
+  { value: 'ADMIN', label: 'Admin' },
+  { value: 'MANAGER', label: 'Manager' },
+  { value: 'EMPLOYEE', label: 'Staff' },
 ];
 
 const ROLE_LABEL: Record<UserRole, string> = {
-  ADMIN: "Admin",
-  MANAGER: "Manager",
-  EMPLOYEE: "Staff",
+  ADMIN: 'Admin',
+  MANAGER: 'Manager',
+  EMPLOYEE: 'Staff',
 };
 
 interface Filters {
-  readonly role: UserRole | "all";
+  readonly role: UserRole | 'all';
   readonly search: string;
-  readonly active: "all" | "active" | "inactive";
+  readonly active: 'all' | 'active' | 'inactive';
 }
 
 const PAGE_SIZE = 25;
@@ -63,89 +64,81 @@ const PAGE_SIZE = 25;
 const apiErrorMessage = (err: unknown, fallback: string): string =>
   err instanceof ApiError ? err.message : fallback;
 
-const queryParamsFromFilters = (
-  filters: Filters,
-  page: number,
-): Record<string, unknown> => {
+const queryParamsFromFilters = (filters: Filters, page: number): Record<string, unknown> => {
   const out: Record<string, unknown> = { page, pageSize: PAGE_SIZE };
-  if (filters.role !== "all") out.role = filters.role;
+  if (filters.role !== 'all') out.role = filters.role;
   if (filters.search.trim().length > 0) out.search = filters.search.trim();
-  if (filters.active !== "all") out.isActive = filters.active === "active";
+  if (filters.active !== 'all') out.isActive = filters.active === 'active';
   return out;
 };
 
 export function UsersAdminView() {
   const qc = useQueryClient();
   const [filters, setFilters] = useState<Filters>({
-    role: "all",
-    search: "",
-    active: "all",
+    role: 'all',
+    search: '',
+    active: 'all',
   });
   const [page, setPage] = useState(1);
   const filtersKey = JSON.stringify(filters);
-  useEffect(() => {
+  // Reset to page 1 whenever filters change (during render to avoid cascading effect).
+  const [prevFiltersKey, setPrevFiltersKey] = useState(filtersKey);
+  if (prevFiltersKey !== filtersKey) {
+    setPrevFiltersKey(filtersKey);
     setPage(1);
-  }, [filtersKey]);
+  }
 
   const [showCreate, setShowCreate] = useState(false);
 
-  const queryKey = useMemo(() => ["admin-users", filtersKey, page] as const, [
-    filtersKey,
-    page,
-  ]);
+  const queryKey = useMemo(() => ['admin-users', filtersKey, page] as const, [filtersKey, page]);
 
   const query = useQuery({
     queryKey,
     queryFn: () =>
       usersAdminService.list(
-        queryParamsFromFilters(filters, page) as Parameters<
-          typeof usersAdminService.list
-        >[0],
+        queryParamsFromFilters(filters, page) as Parameters<typeof usersAdminService.list>[0],
       ),
   });
 
-  const invalidate = () =>
-    qc.invalidateQueries({ queryKey: ["admin-users"], exact: false });
+  const invalidate = () => qc.invalidateQueries({ queryKey: ['admin-users'], exact: false });
 
   const createMutation = useMutation({
-    mutationFn: (input: AdminCreateUserInput) =>
-      usersAdminService.create(input),
+    mutationFn: (input: AdminCreateUserInput) => usersAdminService.create(input),
     onSuccess: () => {
-      toast.success("User created");
+      toast.success('User created');
       setShowCreate(false);
       invalidate();
     },
-    onError: (err) => toast.error(apiErrorMessage(err, "Failed to create user")),
+    onError: (err) => toast.error(apiErrorMessage(err, 'Failed to create user')),
   });
 
   const roleMutation = useMutation({
     mutationFn: ({ id, role }: { id: string; role: UserRole }) =>
       usersAdminService.changeRole(id, role),
     onSuccess: () => {
-      toast.success("Role updated");
+      toast.success('Role updated');
       invalidate();
     },
-    onError: (err) => toast.error(apiErrorMessage(err, "Failed to change role")),
+    onError: (err) => toast.error(apiErrorMessage(err, 'Failed to change role')),
   });
 
   const activeMutation = useMutation({
     mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) =>
       usersAdminService.setActive(id, isActive),
     onSuccess: (_data, variables) => {
-      toast.success(variables.isActive ? "User reactivated" : "User deactivated");
+      toast.success(variables.isActive ? 'User reactivated' : 'User deactivated');
       invalidate();
     },
-    onError: (err) =>
-      toast.error(apiErrorMessage(err, "Failed to update user status")),
+    onError: (err) => toast.error(apiErrorMessage(err, 'Failed to update user status')),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => usersAdminService.remove(id),
     onSuccess: () => {
-      toast.success("User deleted");
+      toast.success('User deleted');
       invalidate();
     },
-    onError: (err) => toast.error(apiErrorMessage(err, "Failed to delete user")),
+    onError: (err) => toast.error(apiErrorMessage(err, 'Failed to delete user')),
   });
 
   const items = query.data?.items ?? [];
@@ -161,7 +154,7 @@ export function UsersAdminView() {
             Users
           </h1>
           <p className="text-muted-foreground mt-1 text-sm">
-            Manage admins, managers, and staff. {total} user{total === 1 ? "" : "s"}.
+            Manage admins, managers, and staff. {total} user{total === 1 ? '' : 's'}.
           </p>
         </div>
         <Button onClick={() => setShowCreate(true)}>
@@ -178,9 +171,7 @@ export function UsersAdminView() {
             id="users-search"
             placeholder="Email or name"
             value={filters.search}
-            onChange={(e) =>
-              setFilters((prev) => ({ ...prev, search: e.target.value }))
-            }
+            onChange={(e) => setFilters((prev) => ({ ...prev, search: e.target.value }))}
             className="w-64"
           />
         </div>
@@ -189,7 +180,7 @@ export function UsersAdminView() {
           <Select
             value={filters.role}
             onValueChange={(value) =>
-              setFilters((prev) => ({ ...prev, role: value as Filters["role"] }))
+              setFilters((prev) => ({ ...prev, role: value as Filters['role'] }))
             }
           >
             <SelectTrigger className="w-40">
@@ -212,7 +203,7 @@ export function UsersAdminView() {
             onValueChange={(value) =>
               setFilters((prev) => ({
                 ...prev,
-                active: value as Filters["active"],
+                active: value as Filters['active'],
               }))
             }
           >
@@ -241,11 +232,13 @@ export function UsersAdminView() {
           </TableHeader>
           <TableBody>
             {query.isLoading ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-muted-foreground py-8 text-center">
-                  <Loader2 className="mx-auto h-5 w-5 animate-spin" aria-hidden />
-                </TableCell>
-              </TableRow>
+              Array.from({ length: 6 }).map((_, i) => (
+                <TableRow key={`sk-${i}`}>
+                  <TableCell colSpan={5}>
+                    <Skeleton className="h-8 w-full" />
+                  </TableCell>
+                </TableRow>
+              ))
             ) : items.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="text-muted-foreground py-8 text-center">
@@ -257,9 +250,7 @@ export function UsersAdminView() {
                 <UserRowView
                   key={user.id}
                   user={user}
-                  onChangeRole={(role) =>
-                    roleMutation.mutate({ id: user.id, role })
-                  }
+                  onChangeRole={(role) => roleMutation.mutate({ id: user.id, role })}
                   onToggleActive={() =>
                     activeMutation.mutate({
                       id: user.id,
@@ -276,9 +267,7 @@ export function UsersAdminView() {
                     }
                   }}
                   busy={
-                    roleMutation.isPending ||
-                    activeMutation.isPending ||
-                    deleteMutation.isPending
+                    roleMutation.isPending || activeMutation.isPending || deleteMutation.isPending
                   }
                 />
               ))
@@ -330,13 +319,7 @@ interface UserRowViewProps {
   readonly busy: boolean;
 }
 
-function UserRowView({
-  user,
-  onChangeRole,
-  onToggleActive,
-  onDelete,
-  busy,
-}: UserRowViewProps) {
+function UserRowView({ user, onChangeRole, onToggleActive, onDelete, busy }: UserRowViewProps) {
   const isActive = user.isActive ?? true;
   return (
     <TableRow>
@@ -366,11 +349,11 @@ function UserRowView({
         <span
           className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
             isActive
-              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-              : "bg-muted text-muted-foreground"
+              ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+              : 'bg-muted text-muted-foreground'
           }`}
         >
-          {isActive ? "Active" : "Inactive"}
+          {isActive ? 'Active' : 'Inactive'}
         </span>
       </TableCell>
       <TableCell className="text-right">
@@ -380,20 +363,12 @@ function UserRowView({
             size="sm"
             onClick={onToggleActive}
             disabled={busy}
-            title={isActive ? "Deactivate" : "Reactivate"}
+            title={isActive ? 'Deactivate' : 'Reactivate'}
           >
             <Power className="h-4 w-4" aria-hidden />
-            <span className="sr-only">
-              {isActive ? "Deactivate" : "Reactivate"}
-            </span>
+            <span className="sr-only">{isActive ? 'Deactivate' : 'Reactivate'}</span>
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onDelete}
-            disabled={busy}
-            title="Delete"
-          >
+          <Button variant="ghost" size="sm" onClick={onDelete} disabled={busy} title="Delete">
             <Trash2 className="h-4 w-4 text-rose-500" aria-hidden />
             <span className="sr-only">Delete</span>
           </Button>
@@ -411,18 +386,18 @@ interface CreateUserDialogProps {
 
 function CreateUserDialog({ onClose, onSubmit, busy }: CreateUserDialogProps) {
   const [form, setForm] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    password: "",
-    phone: "",
-    role: "EMPLOYEE" as UserRole,
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    phone: '',
+    role: 'EMPLOYEE' as UserRole,
   });
 
   const handle = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (form.password.length < 8) {
-      toast.error("Password must be at least 8 characters");
+      toast.error('Password must be at least 8 characters');
       return;
     }
     onSubmit({
@@ -454,13 +429,7 @@ function CreateUserDialog({ onClose, onSubmit, busy }: CreateUserDialogProps) {
               Admin-created accounts are pre-verified.
             </p>
           </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            aria-label="Close"
-          >
+          <Button type="button" variant="ghost" size="icon" onClick={onClose} aria-label="Close">
             <X className="h-4 w-4" aria-hidden />
           </Button>
         </header>
@@ -472,9 +441,7 @@ function CreateUserDialog({ onClose, onSubmit, busy }: CreateUserDialogProps) {
               <Input
                 id="firstName"
                 value={form.firstName}
-                onChange={(e) =>
-                  setForm((prev) => ({ ...prev, firstName: e.target.value }))
-                }
+                onChange={(e) => setForm((prev) => ({ ...prev, firstName: e.target.value }))}
                 required
                 maxLength={80}
               />
@@ -484,9 +451,7 @@ function CreateUserDialog({ onClose, onSubmit, busy }: CreateUserDialogProps) {
               <Input
                 id="lastName"
                 value={form.lastName}
-                onChange={(e) =>
-                  setForm((prev) => ({ ...prev, lastName: e.target.value }))
-                }
+                onChange={(e) => setForm((prev) => ({ ...prev, lastName: e.target.value }))}
                 required
                 maxLength={80}
               />
@@ -499,9 +464,7 @@ function CreateUserDialog({ onClose, onSubmit, busy }: CreateUserDialogProps) {
               id="email"
               type="email"
               value={form.email}
-              onChange={(e) =>
-                setForm((prev) => ({ ...prev, email: e.target.value }))
-              }
+              onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))}
               required
             />
           </div>
@@ -512,9 +475,7 @@ function CreateUserDialog({ onClose, onSubmit, busy }: CreateUserDialogProps) {
               id="password"
               type="password"
               value={form.password}
-              onChange={(e) =>
-                setForm((prev) => ({ ...prev, password: e.target.value }))
-              }
+              onChange={(e) => setForm((prev) => ({ ...prev, password: e.target.value }))}
               required
               minLength={8}
             />
@@ -529,9 +490,7 @@ function CreateUserDialog({ onClose, onSubmit, busy }: CreateUserDialogProps) {
               <Input
                 id="phone"
                 value={form.phone}
-                onChange={(e) =>
-                  setForm((prev) => ({ ...prev, phone: e.target.value }))
-                }
+                onChange={(e) => setForm((prev) => ({ ...prev, phone: e.target.value }))}
                 maxLength={32}
               />
             </div>
@@ -539,9 +498,7 @@ function CreateUserDialog({ onClose, onSubmit, busy }: CreateUserDialogProps) {
               <Label>Role</Label>
               <Select
                 value={form.role}
-                onValueChange={(value) =>
-                  setForm((prev) => ({ ...prev, role: value as UserRole }))
-                }
+                onValueChange={(value) => setForm((prev) => ({ ...prev, role: value as UserRole }))}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -570,7 +527,7 @@ function CreateUserDialog({ onClose, onSubmit, busy }: CreateUserDialogProps) {
                   <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Creating…
                 </>
               ) : (
-                "Create user"
+                'Create user'
               )}
             </Button>
           </footer>

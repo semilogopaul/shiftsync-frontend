@@ -1,12 +1,7 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import {
-  AlertTriangle,
-  BarChart3,
-  Loader2,
-  Sparkles,
-} from "lucide-react";
+import { useState } from 'react';
+import { AlertTriangle, BarChart3, Sparkles } from 'lucide-react';
 import {
   Bar,
   BarChart,
@@ -17,36 +12,32 @@ import {
   Tooltip,
   XAxis,
   YAxis,
-} from "recharts";
+} from 'recharts';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { useLocations } from "@/modules/locations";
-import {
-  useDistribution,
-  useOvertime,
-} from "../hooks/use-analytics";
+} from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useLocations } from '@/modules/locations';
+import { useDistribution, useOvertime } from '../hooks/use-analytics';
 
-const PRIMARY = "var(--color-primary)";
-const TIPPING = "#ef4444";
-const SOFT = "#94a3b8";
+const PRIMARY = 'var(--color-primary)';
+const TIPPING = '#ef4444';
+const SOFT = '#94a3b8';
 
 export function AnalyticsView() {
   const { data: locations = [] } = useLocations();
-  const [locationId, setLocationId] = useState<string | "all">("all");
-  const params = locationId === "all" ? {} : { locationId };
+  const [locationId, setLocationId] = useState<string | 'all'>('all');
+  const params = locationId === 'all' ? {} : { locationId };
 
   return (
     <section className="space-y-6">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Analytics & insights
-          </h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Analytics & insights</h1>
           <p className="text-muted-foreground text-sm">
             Overtime risk and hour distribution across the organisation.
           </p>
@@ -97,7 +88,7 @@ function OvertimePanel({ params }: PanelParams) {
       subtitle="Projected weekly hours per staff. Red bars are at the OT tipping point."
       meta={
         flagged > 0 ? (
-          <span className="border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300 inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold">
+          <span className="border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300 inline-flex whitespace-nowrap rounded-full border px-2 py-0.5 text-[11px] font-semibold">
             {flagged} approaching OT
           </span>
         ) : null
@@ -112,15 +103,17 @@ function OvertimePanel({ params }: PanelParams) {
           <YAxis stroke="var(--muted-foreground)" fontSize={11} />
           <Tooltip
             contentStyle={tooltipStyle}
-            formatter={(value) => [`${Number(value)} h`, "Projected"]}
+            formatter={(value) => [`${Number(value)} h`, 'Projected']}
           />
-          <ReferenceLine y={40} stroke="#ef4444" strokeDasharray="4 4" label={{ value: "OT cap", fill: "#ef4444", fontSize: 10 }} />
+          <ReferenceLine
+            y={40}
+            stroke="#ef4444"
+            strokeDasharray="4 4"
+            label={{ value: 'OT cap', fill: '#ef4444', fontSize: 10 }}
+          />
           <Bar dataKey="hours" radius={[6, 6, 0, 0]}>
             {data.map((row, index) => (
-              <Cell
-                key={`cell-${row.name}-${index}`}
-                fill={row.tipping ? TIPPING : PRIMARY}
-              />
+              <Cell key={`cell-${row.name}-${index}`} fill={row.tipping ? TIPPING : PRIMARY} />
             ))}
           </Bar>
         </BarChart>
@@ -150,14 +143,14 @@ function DistributionPanel({ params }: PanelParams) {
   );
   const summary =
     rows.length === 0
-      ? "No data."
+      ? 'No data.'
       : [
           counts.UNDER ? `${counts.UNDER} under` : null,
           counts.ON_TARGET ? `${counts.ON_TARGET} on target` : null,
           counts.OVER ? `${counts.OVER} over` : null,
         ]
           .filter(Boolean)
-          .join(" · ") || "No desired hours set.";
+          .join(' · ') || 'No desired hours set.';
 
   return (
     <ChartCard
@@ -199,7 +192,7 @@ function DistributionPanel({ params }: PanelParams) {
                 {row.totalHours.toFixed(1)}h
                 {row.desiredHoursForWindow != null
                   ? ` / ${row.desiredHoursForWindow.toFixed(1)}h`
-                  : ""}
+                  : ''}
               </span>
               <ScheduleStatusChip status={row.scheduleStatus} />
             </li>
@@ -211,11 +204,11 @@ function DistributionPanel({ params }: PanelParams) {
 }
 
 const tooltipStyle: React.CSSProperties = {
-  backgroundColor: "var(--popover)",
-  border: "1px solid var(--border)",
+  backgroundColor: 'var(--popover)',
+  border: '1px solid var(--border)',
   borderRadius: 12,
   fontSize: 12,
-  color: "var(--popover-foreground)",
+  color: 'var(--popover-foreground)',
 };
 
 /**
@@ -254,15 +247,15 @@ function PremiumPanel({ params }: PanelParams) {
           <Tooltip
             contentStyle={tooltipStyle}
             formatter={(value, _name, ctx) => [
-              `${Number(value ?? 0)} h · fairness ${(ctx?.payload as { fairness?: number } | undefined)?.fairness ?? "-"}/100`,
-              "Premium",
+              `${Number(value ?? 0)} h · fairness ${(ctx?.payload as { fairness?: number } | undefined)?.fairness ?? '-'}/100`,
+              'Premium',
             ]}
           />
           <Bar dataKey="Premium" radius={[6, 6, 0, 0]}>
             {data.map((row, index) => (
               <Cell
                 key={`prem-${row.name}-${index}`}
-                fill={row.fairness >= 80 ? PRIMARY : row.fairness >= 60 ? "#f59e0b" : TIPPING}
+                fill={row.fairness >= 80 ? PRIMARY : row.fairness >= 60 ? '#f59e0b' : TIPPING}
               />
             ))}
           </Bar>
@@ -274,7 +267,7 @@ function PremiumPanel({ params }: PanelParams) {
 
 interface ChartCardProps {
   readonly icon: React.ReactNode;
-  readonly tone: "primary" | "amber" | "fuchsia" | "sky";
+  readonly tone: 'primary' | 'amber' | 'fuchsia' | 'sky';
   readonly title: string;
   readonly subtitle: string;
   readonly meta?: React.ReactNode;
@@ -294,19 +287,21 @@ function ChartCard({
   children,
 }: ChartCardProps) {
   const toneClass =
-    tone === "primary"
-      ? "bg-primary/10 text-primary"
-      : tone === "amber"
-        ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
-        : tone === "fuchsia"
-          ? "bg-fuchsia-500/10 text-fuchsia-600 dark:text-fuchsia-400"
-          : "bg-sky-500/10 text-sky-600 dark:text-sky-400";
+    tone === 'primary'
+      ? 'bg-primary/10 text-primary'
+      : tone === 'amber'
+        ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+        : tone === 'fuchsia'
+          ? 'bg-fuchsia-500/10 text-fuchsia-600 dark:text-fuchsia-400'
+          : 'bg-sky-500/10 text-sky-600 dark:text-sky-400';
 
   return (
     <div className="border-border/60 bg-card/40 rounded-3xl border p-5">
       <header className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3">
-          <span className={`inline-flex h-8 w-8 items-center justify-center rounded-xl ${toneClass}`}>
+          <span
+            className={`inline-flex h-8 w-8 items-center justify-center rounded-xl ${toneClass}`}
+          >
             {icon}
           </span>
           <div>
@@ -319,10 +314,7 @@ function ChartCard({
 
       <div className="mt-4">
         {isLoading ? (
-          <div className="text-muted-foreground flex h-[260px] items-center justify-center gap-2 text-sm">
-            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-            Loading…
-          </div>
+          <Skeleton className="h-[260px] w-full" />
         ) : isEmpty ? (
           <div className="text-muted-foreground flex h-[260px] items-center justify-center text-sm">
             No data yet.
@@ -344,40 +336,35 @@ function ChartCard({
 function ScheduleStatusChip({
   status,
 }: {
-  readonly status: "OK" | "UNDER" | "ON_TARGET" | "OVER" | "UNKNOWN";
+  readonly status: 'OK' | 'UNDER' | 'ON_TARGET' | 'OVER' | 'UNKNOWN';
 }) {
   const map: Record<typeof status, { label: string; className: string }> = {
     OK: {
-      label: "OK",
-      className:
-        "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+      label: 'OK',
+      className: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
     },
     ON_TARGET: {
-      label: "On target",
-      className:
-        "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+      label: 'On target',
+      className: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
     },
     UNDER: {
-      label: "Under",
-      className:
-        "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300",
+      label: 'Under',
+      className: 'border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300',
     },
     OVER: {
-      label: "Over",
-      className:
-        "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300",
+      label: 'Over',
+      className: 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300',
     },
     UNKNOWN: {
-      label: "—",
-      className:
-        "border-border/60 bg-muted/30 text-muted-foreground",
+      label: '—',
+      className: 'border-border/60 bg-muted/30 text-muted-foreground',
     },
   };
   const { label, className } = map[status];
   return (
     <span
       className={
-        "inline-flex shrink-0 items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider " +
+        'inline-flex shrink-0 items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ' +
         className
       }
     >

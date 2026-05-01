@@ -1,17 +1,18 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { apiGet, apiPatch } from "@/lib/api-client";
-import { messageFromError } from "@/common/utils/error-message";
-import { toast } from "sonner";
-import { useCurrentUser } from "@/modules/auth";
-import { MyCertificationsPanel } from "@/modules/certifications";
+import { useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
+import { apiGet, apiPatch } from '@/lib/api-client';
+import { messageFromError } from '@/common/utils/error-message';
+import { toast } from 'sonner';
+import { useCurrentUser } from '@/modules/auth';
+import { MyCertificationsPanel } from '@/modules/certifications';
 
 interface Settings {
   readonly notifyInApp: boolean;
@@ -19,14 +20,14 @@ interface Settings {
   readonly desiredWeeklyHours: number;
 }
 
-const KEY = ["settings", "me"] as const;
+const KEY = ['settings', 'me'] as const;
 
 export function SettingsView() {
   const queryClient = useQueryClient();
   const { data: currentUser } = useCurrentUser();
   const query = useQuery({
     queryKey: KEY,
-    queryFn: () => apiGet<Settings>("/users/me"),
+    queryFn: () => apiGet<Settings>('/users/me'),
   });
   const [form, setForm] = useState<Settings>({
     notifyInApp: true,
@@ -34,27 +35,29 @@ export function SettingsView() {
     desiredWeeklyHours: 40,
   });
 
-  useEffect(() => {
-    if (query.data) setForm(query.data);
-  }, [query.data]);
+  // Sync server data into the form once it arrives, and again if it changes (e.g. on refetch).
+  const [prevData, setPrevData] = useState<typeof query.data>(undefined);
+  if (query.data && query.data !== prevData) {
+    setPrevData(query.data);
+    setForm(query.data);
+  }
 
   const save = useMutation({
     mutationFn: async (input: Settings) => {
       await apiPatch<Settings, { notifyInApp: boolean; notifyEmail: boolean }>(
-        "/users/me/notifications",
+        '/users/me/notifications',
         { notifyInApp: input.notifyInApp, notifyEmail: input.notifyEmail },
       );
-      return apiPatch<Settings, { desiredWeeklyHours: number }>(
-        "/users/me/desired-hours",
-        { desiredWeeklyHours: input.desiredWeeklyHours },
-      );
+      return apiPatch<Settings, { desiredWeeklyHours: number }>('/users/me/desired-hours', {
+        desiredWeeklyHours: input.desiredWeeklyHours,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: KEY });
-      toast.success("Settings saved.");
+      toast.success('Settings saved.');
     },
     onError: (error) => {
-      toast.error(messageFromError(error, "Could not save settings."));
+      toast.error(messageFromError(error, 'Could not save settings.'));
     },
   });
 
@@ -62,15 +65,16 @@ export function SettingsView() {
     <section className="space-y-6">
       <header>
         <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
-        <p className="text-muted-foreground text-sm">
-          Notifications and preferences.
-        </p>
+        <p className="text-muted-foreground text-sm">Notifications and preferences.</p>
       </header>
 
       {query.isLoading ? (
-        <div className="text-muted-foreground flex items-center gap-2">
-          <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-          Loading…
+        <div className="border-border/60 bg-card/40 max-w-xl space-y-4 rounded-3xl border p-6">
+          <Skeleton className="h-5 w-32" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-5 w-40" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-32" />
         </div>
       ) : (
         <form
@@ -81,27 +85,27 @@ export function SettingsView() {
           className="border-border/60 bg-card/40 max-w-xl space-y-6 rounded-3xl border p-6"
         >
           <fieldset className="space-y-3">
-            <legend className="text-foreground text-base font-semibold">
-              Notifications
-            </legend>
-            <Label className="inline-flex cursor-pointer items-center gap-2 text-sm">
-              <Checkbox
-                checked={form.notifyInApp}
-                onCheckedChange={(value) =>
-                  setForm((prev) => ({ ...prev, notifyInApp: value === true }))
-                }
-              />
-              Show in-app notifications
-            </Label>
-            <Label className="inline-flex cursor-pointer items-center gap-2 text-sm">
-              <Checkbox
-                checked={form.notifyEmail}
-                onCheckedChange={(value) =>
-                  setForm((prev) => ({ ...prev, notifyEmail: value === true }))
-                }
-              />
-              Send email notifications
-            </Label>
+            <legend className="text-foreground text-base font-semibold">Notifications</legend>
+            <div className="flex flex-col gap-2">
+              <Label className="inline-flex w-fit cursor-pointer items-center gap-2 text-sm">
+                <Checkbox
+                  checked={form.notifyInApp}
+                  onCheckedChange={(value) =>
+                    setForm((prev) => ({ ...prev, notifyInApp: value === true }))
+                  }
+                />
+                Show in-app notifications
+              </Label>
+              <Label className="inline-flex w-fit cursor-pointer items-center gap-2 text-sm">
+                <Checkbox
+                  checked={form.notifyEmail}
+                  onCheckedChange={(value) =>
+                    setForm((prev) => ({ ...prev, notifyEmail: value === true }))
+                  }
+                />
+                Send email notifications
+              </Label>
+            </div>
           </fieldset>
 
           <div className="space-y-2">
@@ -121,8 +125,7 @@ export function SettingsView() {
               className="max-w-[180px]"
             />
             <p className="text-muted-foreground text-xs">
-              Used by analytics to compare your scheduled hours against what
-              you’d like.
+              Used by analytics to compare your scheduled hours against what you’d like.
             </p>
           </div>
 
@@ -135,7 +138,7 @@ export function SettingsView() {
         </form>
       )}
 
-      {currentUser?.role === "EMPLOYEE" && currentUser.id ? (
+      {currentUser?.role === 'EMPLOYEE' && currentUser.id ? (
         <MyCertificationsPanel userId={currentUser.id} />
       ) : null}
     </section>

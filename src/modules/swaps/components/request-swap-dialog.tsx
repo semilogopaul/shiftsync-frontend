@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import { useMemo, useState, type FormEvent } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Loader2, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { ValidationFindingsList } from "@/common/components/validation-findings-list";
-import { formatTimeRange } from "@/common/utils/datetime";
-import type { Shift, UserSummary } from "@/common/types/domain";
-import { usersService } from "@/modules/users/services/users-service";
-import { useSwapMutations, usePendingCounts } from "../hooks/use-swaps";
+import { useMemo, useState, type FormEvent } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Loader2, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { ValidationFindingsList } from '@/common/components/validation-findings-list';
+import { formatTimeRange } from '@/common/utils/datetime';
+import type { Shift, UserSummary } from '@/common/types/domain';
+import { usersService } from '@/modules/users/services/users-service';
+import { useSwapMutations, usePendingCounts } from '../hooks/use-swaps';
 
 interface Props {
   readonly shift: Shift;
@@ -32,11 +32,11 @@ export function RequestSwapDialog({ shift, currentUserId, onClose }: Props) {
   const swapMutations = useSwapMutations();
   const pending = usePendingCounts();
 
-  const [toUserId, setToUserId] = useState<string>("");
-  const [reason, setReason] = useState<string>("");
+  const [toUserId, setToUserId] = useState<string>('');
+  const [reason, setReason] = useState<string>('');
 
   const candidates = useQuery({
-    queryKey: ["users", { locationId: shift.locationId }],
+    queryKey: ['users', { locationId: shift.locationId }],
     queryFn: () => usersService.directory({ locationId: shift.locationId }),
   });
 
@@ -44,7 +44,7 @@ export function RequestSwapDialog({ shift, currentUserId, onClose }: Props) {
     if (!candidates.data) return [];
     return candidates.data.filter((user: UserSummary) => {
       if (user.id === currentUserId) return false;
-      if (user.role !== "EMPLOYEE" && user.role !== "MANAGER") return false;
+      if (user.role !== 'EMPLOYEE' && user.role !== 'MANAGER') return false;
       if (shift.skillId) {
         const has = user.skills?.some((s) => s.id === shift.skillId);
         if (!has) return false;
@@ -56,8 +56,8 @@ export function RequestSwapDialog({ shift, currentUserId, onClose }: Props) {
   }, [candidates.data, currentUserId, shift.locationId, shift.skillId]);
 
   const atLimit =
-    typeof pending.data?.total === "number" &&
-    typeof pending.data?.limit === "number" &&
+    typeof pending.data?.total === 'number' &&
+    typeof pending.data?.limit === 'number' &&
     pending.data.total >= pending.data.limit;
   const limit = pending.data?.limit ?? MAX_PENDING;
 
@@ -83,8 +83,8 @@ export function RequestSwapDialog({ shift, currentUserId, onClose }: Props) {
           <div>
             <h2 className="text-xl font-semibold tracking-tight">Request swap</h2>
             <p className="text-muted-foreground mt-1 text-sm">
-              {formatTimeRange(shift.startsAt, shift.endsAt, shift.location.timezone)} ·{" "}
-              {shift.location.name}
+              {formatTimeRange(shift.startsAt, shift.endsAt, shift.location?.timezone ?? 'UTC')} ·{' '}
+              {shift.location?.name ?? '—'}
             </p>
           </div>
           <Button type="button" variant="ghost" size="icon" onClick={onClose} aria-label="Close">
@@ -143,10 +143,7 @@ export function RequestSwapDialog({ shift, currentUserId, onClose }: Props) {
             <Button type="button" variant="ghost" onClick={onClose}>
               Cancel
             </Button>
-            <Button
-              type="submit"
-              disabled={!toUserId || atLimit || swapMutations.create.isPending}
-            >
+            <Button type="submit" disabled={!toUserId || atLimit || swapMutations.create.isPending}>
               {swapMutations.create.isPending ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
               ) : null}

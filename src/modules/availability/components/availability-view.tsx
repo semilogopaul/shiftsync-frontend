@@ -1,40 +1,38 @@
-"use client";
+'use client';
 
-import { useState, type FormEvent } from "react";
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
-import { Loader2, Plus, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { useState, type FormEvent } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Plus, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { dayName, minutesToLabel } from "@/common/utils/datetime";
-import { messageFromError } from "@/common/utils/error-message";
-import { useCurrentUser } from "@/modules/auth";
-import { availabilityService } from "../services/availability-service";
+} from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Skeleton } from '@/components/ui/skeleton';
+import { dayName, minutesToLabel } from '@/common/utils/datetime';
+import { messageFromError } from '@/common/utils/error-message';
+import { useCurrentUser } from '@/modules/auth';
+import { availabilityService } from '../services/availability-service';
 
-const windowsKey = (uid: string) => ["availability", "windows", uid] as const;
-const exceptionsKey = (uid: string) =>
-  ["availability", "exceptions", uid] as const;
+const windowsKey = (uid: string) => ['availability', 'windows', uid] as const;
+const exceptionsKey = (uid: string) => ['availability', 'exceptions', uid] as const;
 
 export function AvailabilityView() {
   const { data: user } = useCurrentUser();
   if (!user) {
     return (
-      <div className="text-muted-foreground flex items-center gap-2 py-12">
-        <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-        Loading…
-      </div>
+      <section className="space-y-6">
+        <Skeleton className="h-8 w-40" />
+        <Skeleton className="h-4 w-96" />
+        <Skeleton className="h-64 w-full rounded-3xl" />
+        <Skeleton className="h-64 w-full rounded-3xl" />
+      </section>
     );
   }
 
@@ -43,8 +41,8 @@ export function AvailabilityView() {
       <header>
         <h1 className="text-2xl font-semibold tracking-tight">Availability</h1>
         <p className="text-muted-foreground text-sm">
-          Recurring weekly windows and one-off exceptions. Managers see this
-          when they’re looking for coverage.
+          Recurring weekly windows and one-off exceptions. Managers see this when they’re looking
+          for coverage.
         </p>
       </header>
 
@@ -56,9 +54,9 @@ export function AvailabilityView() {
 
 const browserTimezone = (): string => {
   try {
-    return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
   } catch {
-    return "UTC";
+    return 'UTC';
   }
 };
 
@@ -68,9 +66,9 @@ function RecurringWindows({ userId }: { readonly userId: string }) {
     queryKey: windowsKey(userId),
     queryFn: () => availabilityService.listForUser(userId),
   });
-  const [day, setDay] = useState("1");
-  const [start, setStart] = useState("09:00");
-  const [end, setEnd] = useState("17:00");
+  const [day, setDay] = useState('1');
+  const [start, setStart] = useState('09:00');
+  const [end, setEnd] = useState('17:00');
 
   const create = useMutation({
     mutationFn: (input: {
@@ -79,13 +77,11 @@ function RecurringWindows({ userId }: { readonly userId: string }) {
       endMinute: number;
       timezone: string;
     }) => availabilityService.createWindow(userId, input),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: windowsKey(userId) }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: windowsKey(userId) }),
   });
   const remove = useMutation({
     mutationFn: (id: string) => availabilityService.deleteWindow(id),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: windowsKey(userId) }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: windowsKey(userId) }),
   });
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -106,12 +102,12 @@ function RecurringWindows({ userId }: { readonly userId: string }) {
 
       <form
         onSubmit={onSubmit}
-        className="border-border/60 mt-4 grid gap-3 rounded-2xl border bg-background/50 p-4 sm:grid-cols-[1fr_auto_auto_auto]"
+        className="border-border/60 mt-4 grid gap-3 rounded-2xl border bg-background/50 p-4 sm:grid-cols-4 sm:items-start"
       >
         <div className="space-y-2">
           <Label htmlFor="day">Day</Label>
           <Select value={day} onValueChange={setDay}>
-            <SelectTrigger id="day">
+            <SelectTrigger id="day" className="h-11 w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -141,25 +137,32 @@ function RecurringWindows({ userId }: { readonly userId: string }) {
             onChange={(event) => setEnd(event.target.value)}
           />
         </div>
-        <div className="flex items-end">
-          <Button type="submit" disabled={create.isPending} className="w-full sm:w-auto">
+        <div className="space-y-2">
+          <Label className="invisible" aria-hidden="true">
+            Action
+          </Label>
+          <Button type="submit" disabled={create.isPending} className="h-11 w-full">
             <Plus className="mr-1 h-4 w-4" aria-hidden="true" />
             Add
           </Button>
         </div>
         {create.error ? (
           <p className="text-destructive sm:col-span-4 text-xs">
-            {messageFromError(create.error, "Could not add window.")}
+            {messageFromError(create.error, 'Could not add window.')}
           </p>
         ) : null}
       </form>
 
       <ul className="mt-5 space-y-2">
         {list.isLoading ? (
-          <li className="text-muted-foreground flex items-center gap-2 text-sm">
-            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-            Loading…
-          </li>
+          <>
+            <li>
+              <Skeleton className="h-12 w-full rounded-xl" />
+            </li>
+            <li>
+              <Skeleton className="h-12 w-full rounded-xl" />
+            </li>
+          </>
         ) : items.length === 0 ? (
           <li className="text-muted-foreground text-sm">
             You haven’t added any weekly windows yet.
@@ -171,12 +174,9 @@ function RecurringWindows({ userId }: { readonly userId: string }) {
               className="border-border/60 flex items-center justify-between gap-3 rounded-xl border p-3"
             >
               <div>
-                <p className="text-foreground text-sm font-medium">
-                  {dayName(win.dayOfWeek)}
-                </p>
+                <p className="text-foreground text-sm font-medium">{dayName(win.dayOfWeek)}</p>
                 <p className="text-muted-foreground text-xs">
-                  {minutesToLabel(win.startMinute)} –{" "}
-                  {minutesToLabel(win.endMinute)}
+                  {minutesToLabel(win.startMinute)} – {minutesToLabel(win.endMinute)}
                 </p>
               </div>
               <Button
@@ -204,28 +204,26 @@ function Exceptions({ userId }: { readonly userId: string }) {
   });
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [available, setAvailable] = useState(false);
-  const [reason, setReason] = useState("");
+  const [reason, setReason] = useState('');
 
   const create = useMutation({
     mutationFn: (input: {
-      type: "AVAILABLE" | "UNAVAILABLE";
+      type: 'AVAILABLE' | 'UNAVAILABLE';
       startsAt: string;
       endsAt: string;
       note?: string;
     }) => availabilityService.createException(userId, input),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: exceptionsKey(userId) }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: exceptionsKey(userId) }),
   });
   const remove = useMutation({
     mutationFn: (id: string) => availabilityService.deleteException(id),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: exceptionsKey(userId) }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: exceptionsKey(userId) }),
   });
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     create.mutate({
-      type: available ? "AVAILABLE" : "UNAVAILABLE",
+      type: available ? 'AVAILABLE' : 'UNAVAILABLE',
       startsAt: new Date(`${date}T00:00:00`).toISOString(),
       endsAt: new Date(`${date}T23:59:59`).toISOString(),
       note: reason.trim() || undefined,
@@ -238,13 +236,13 @@ function Exceptions({ userId }: { readonly userId: string }) {
     <div className="border-border/60 bg-card/40 rounded-3xl border p-5">
       <h2 className="text-foreground text-lg font-semibold">One-off exceptions</h2>
       <p className="text-muted-foreground mt-1 text-xs">
-        Mark a specific day as available or unavailable, e.g. for a doctor’s
-        appointment or a one-time pickup shift.
+        Mark a specific day as available or unavailable, e.g. for a doctor’s appointment or a
+        one-time pickup shift.
       </p>
 
       <form
         onSubmit={onSubmit}
-        className="border-border/60 mt-4 grid gap-3 rounded-2xl border bg-background/50 p-4 sm:grid-cols-[1fr_auto_2fr_auto]"
+        className="border-border/60 mt-4 grid gap-3 rounded-2xl border bg-background/50 p-4 sm:grid-cols-4 sm:items-start"
       >
         <div className="space-y-2">
           <Label htmlFor="exc-date">Date</Label>
@@ -255,26 +253,35 @@ function Exceptions({ userId }: { readonly userId: string }) {
             onChange={(event) => setDate(event.target.value)}
           />
         </div>
-        <div className="flex items-end">
-          <Label className="inline-flex cursor-pointer items-center gap-2 text-sm">
-            <Checkbox
-              checked={available}
-              onCheckedChange={(value) => setAvailable(value === true)}
-            />
-            Available
-          </Label>
-        </div>
         <div className="space-y-2">
-          <Label htmlFor="reason">Reason (optional)</Label>
+          <Label htmlFor="exc-reason">Reason (optional)</Label>
           <Input
-            id="reason"
+            id="exc-reason"
             value={reason}
             onChange={(event) => setReason(event.target.value)}
             placeholder="e.g. doctor visit"
           />
         </div>
-        <div className="flex items-end">
-          <Button type="submit" disabled={create.isPending} className="w-full sm:w-auto">
+        <div className="space-y-2">
+          <Label className="invisible" aria-hidden="true">
+            Status
+          </Label>
+          <div className="border-input bg-background/40 flex h-11 items-center gap-2 rounded-lg border px-4">
+            <Checkbox
+              id="exc-available"
+              checked={available}
+              onCheckedChange={(value) => setAvailable(value === true)}
+            />
+            <Label htmlFor="exc-available" className="cursor-pointer text-base font-medium">
+              Available
+            </Label>
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Label className="invisible" aria-hidden="true">
+            Action
+          </Label>
+          <Button type="submit" disabled={create.isPending} className="h-11 w-full">
             <Plus className="mr-1 h-4 w-4" aria-hidden="true" />
             Add
           </Button>
@@ -283,10 +290,14 @@ function Exceptions({ userId }: { readonly userId: string }) {
 
       <ul className="mt-5 space-y-2">
         {list.isLoading ? (
-          <li className="text-muted-foreground flex items-center gap-2 text-sm">
-            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-            Loading…
-          </li>
+          <>
+            <li>
+              <Skeleton className="h-12 w-full rounded-xl" />
+            </li>
+            <li>
+              <Skeleton className="h-12 w-full rounded-xl" />
+            </li>
+          </>
         ) : items.length === 0 ? (
           <li className="text-muted-foreground text-sm">No exceptions set.</li>
         ) : (
@@ -297,20 +308,18 @@ function Exceptions({ userId }: { readonly userId: string }) {
             >
               <div>
                 <p className="text-foreground text-sm font-medium">
-                  {new Date(exc.startsAt).toLocaleDateString()}{" "}
+                  {new Date(exc.startsAt).toLocaleDateString()}{' '}
                   <span
                     className={
-                      exc.type === "AVAILABLE"
-                        ? "text-emerald-600 dark:text-emerald-400"
-                        : "text-destructive"
+                      exc.type === 'AVAILABLE'
+                        ? 'text-emerald-600 dark:text-emerald-400'
+                        : 'text-destructive'
                     }
                   >
-                    · {exc.type === "AVAILABLE" ? "Available" : "Unavailable"}
+                    · {exc.type === 'AVAILABLE' ? 'Available' : 'Unavailable'}
                   </span>
                 </p>
-                {exc.note ? (
-                  <p className="text-muted-foreground text-xs">{exc.note}</p>
-                ) : null}
+                {exc.note ? <p className="text-muted-foreground text-xs">{exc.note}</p> : null}
               </div>
               <Button
                 type="button"
@@ -330,6 +339,6 @@ function Exceptions({ userId }: { readonly userId: string }) {
 }
 
 const hhmmToMin = (hhmm: string): number => {
-  const [h = "0", m = "0"] = hhmm.split(":");
+  const [h = '0', m = '0'] = hhmm.split(':');
   return Number(h) * 60 + Number(m);
 };

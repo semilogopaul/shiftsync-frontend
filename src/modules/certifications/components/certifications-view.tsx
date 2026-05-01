@@ -1,34 +1,29 @@
-"use client";
+'use client';
 
-import { useMemo, useState } from "react";
-import {
-  Loader2,
-  MapPin,
-  Plus,
-  ShieldCheck,
-  Trash2,
-  X,
-} from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { useMemo, useState } from 'react';
+import { Loader2, MapPin, Plus, ShieldCheck, Trash2, X } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { ValidationFindingsList } from "@/common/components/validation-findings-list";
-import { useLocations } from "@/modules/locations";
-import { useSkills } from "@/modules/skills";
-import { usersService } from "@/modules/users";
+} from '@/components/ui/select';
+import { ValidationFindingsList } from '@/common/components/validation-findings-list';
+import { useLocations } from '@/modules/locations';
+import { useSkills } from '@/modules/skills';
+import { usersService } from '@/modules/users';
 import {
   useCertificationMutations,
   useCertificationsForLocation,
-} from "../hooks/use-certifications";
-import type { Certification } from "../services/certifications-service";
+} from '../hooks/use-certifications';
+import type { Certification } from '../services/certifications-service';
 
 /**
  * Admin/manager UI for granting and revoking per-location certifications.
@@ -45,38 +40,29 @@ import type { Certification } from "../services/certifications-service";
  */
 export function CertificationsView() {
   const { data: locations = [], isLoading: locsLoading } = useLocations();
-  const [locationId, setLocationId] = useState<string>("");
+  const [locationId, setLocationId] = useState<string>('');
   const [includeHistory, setIncludeHistory] = useState(false);
   const [granting, setGranting] = useState(false);
 
   // Default to the first location once locations load — the page is useless
   // without a selected location, and asking the user to pick first is just
   // an extra click for the common case.
-  const effectiveLocationId =
-    locationId || (locations.length > 0 ? locations[0].id : "");
+  const effectiveLocationId = locationId || (locations.length > 0 ? locations[0].id : '');
 
-  const certsQuery = useCertificationsForLocation(
-    effectiveLocationId || null,
-    includeHistory,
-  );
+  const certsQuery = useCertificationsForLocation(effectiveLocationId || null, includeHistory);
 
   return (
     <section className="space-y-5">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Certifications
-          </h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Certifications</h1>
           <p className="text-muted-foreground text-sm">
             Who can work at this location, and which skills they can fill.
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Select
-            value={effectiveLocationId}
-            onValueChange={(value) => setLocationId(value)}
-          >
-            <SelectTrigger className="w-56">
+        <div className="flex flex-wrap items-center gap-3">
+          <Select value={effectiveLocationId} onValueChange={(value) => setLocationId(value)}>
+            <SelectTrigger className="h-10 w-56">
               <SelectValue placeholder="Choose location" />
             </SelectTrigger>
             <SelectContent>
@@ -87,21 +73,14 @@ export function CertificationsView() {
               ))}
             </SelectContent>
           </Select>
-          <label className="text-muted-foreground inline-flex items-center gap-2 text-xs">
-            <input
-              type="checkbox"
-              className="accent-primary"
+          <label className="text-muted-foreground inline-flex cursor-pointer items-center gap-2 text-xs">
+            <Checkbox
               checked={includeHistory}
-              onChange={(event) => setIncludeHistory(event.target.checked)}
+              onCheckedChange={(value) => setIncludeHistory(value === true)}
             />
             Show revoked
           </label>
-          <Button
-            type="button"
-            size="sm"
-            onClick={() => setGranting(true)}
-            disabled={!effectiveLocationId}
-          >
+          <Button type="button" onClick={() => setGranting(true)} disabled={!effectiveLocationId}>
             <Plus className="mr-1 h-4 w-4" aria-hidden="true" />
             Grant
           </Button>
@@ -119,12 +98,7 @@ export function CertificationsView() {
         <Loading />
       ) : (certsQuery.data ?? []).length === 0 ? (
         <Empty
-          icon={
-            <ShieldCheck
-              className="text-muted-foreground h-6 w-6"
-              aria-hidden="true"
-            />
-          }
+          icon={<ShieldCheck className="text-muted-foreground h-6 w-6" aria-hidden="true" />}
           message="Nobody is certified at this location yet."
         />
       ) : (
@@ -132,10 +106,7 @@ export function CertificationsView() {
       )}
 
       {granting && effectiveLocationId ? (
-        <GrantDialog
-          locationId={effectiveLocationId}
-          onClose={() => setGranting(false)}
-        />
+        <GrantDialog locationId={effectiveLocationId} onClose={() => setGranting(false)} />
       ) : null}
     </section>
   );
@@ -143,20 +114,21 @@ export function CertificationsView() {
 
 function Loading() {
   return (
-    <div className="text-muted-foreground flex items-center gap-2 py-12">
-      <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-      Loading…
+    <div className="border-border/60 divide-y rounded-2xl border">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="flex items-center justify-between gap-4 px-4 py-4">
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-4 w-1/3" />
+            <Skeleton className="h-3 w-1/4" />
+          </div>
+          <Skeleton className="h-8 w-8 rounded-md" />
+        </div>
+      ))}
     </div>
   );
 }
 
-function Empty({
-  icon,
-  message,
-}: {
-  readonly icon: React.ReactNode;
-  readonly message: string;
-}) {
+function Empty({ icon, message }: { readonly icon: React.ReactNode; readonly message: string }) {
   return (
     <div className="border-border/60 bg-card/40 flex flex-col items-center gap-3 rounded-3xl border py-16 text-center">
       {icon}
@@ -171,18 +143,12 @@ function CertList({ rows }: { readonly rows: readonly Certification[] }) {
     <ul className="border-border/60 divide-y rounded-2xl border">
       {rows.map((cert) => {
         const revoked = Boolean(cert.decertifiedAt);
-        const expired =
-          cert.expiresAt != null && new Date(cert.expiresAt) < new Date();
+        const expired = cert.expiresAt != null && new Date(cert.expiresAt) < new Date();
         return (
-          <li
-            key={cert.id}
-            className="flex items-center justify-between gap-4 px-4 py-3"
-          >
+          <li key={cert.id} className="flex items-center justify-between gap-4 px-4 py-3">
             <div className="min-w-0">
               <p className="text-foreground truncate text-sm font-medium">
-                {cert.user
-                  ? `${cert.user.firstName} ${cert.user.lastName}`
-                  : cert.userId}
+                {cert.user ? `${cert.user.firstName} ${cert.user.lastName}` : cert.userId}
                 {revoked ? (
                   <span className="text-muted-foreground ml-2 inline-flex rounded-full border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider">
                     Revoked
@@ -195,11 +161,11 @@ function CertList({ rows }: { readonly rows: readonly Certification[] }) {
               </p>
               <p className="text-muted-foreground mt-0.5 text-xs">
                 {cert.skills.length === 0
-                  ? "No skills"
-                  : cert.skills.map((s) => s.skill.name).join(" · ")}
+                  ? 'No skills'
+                  : cert.skills.map((s) => s.skill.name).join(' · ')}
                 {cert.expiresAt
                   ? ` · expires ${new Date(cert.expiresAt).toLocaleDateString()}`
-                  : ""}
+                  : ''}
               </p>
             </div>
             {!revoked ? (
@@ -209,9 +175,9 @@ function CertList({ rows }: { readonly rows: readonly Certification[] }) {
                 size="icon"
                 onClick={() => {
                   if (
-                    typeof window !== "undefined" &&
+                    typeof window !== 'undefined' &&
                     !window.confirm(
-                      `Revoke ${cert.user?.firstName ?? "this user"}'s certification? Historical assignments stay intact.`,
+                      `Revoke ${cert.user?.firstName ?? 'this user'}'s certification? Historical assignments stay intact.`,
                     )
                   )
                     return;
@@ -220,10 +186,7 @@ function CertList({ rows }: { readonly rows: readonly Certification[] }) {
                 disabled={mutations.revoke.isPending}
                 aria-label="Revoke certification"
               >
-                <Trash2
-                  className="text-destructive h-4 w-4"
-                  aria-hidden="true"
-                />
+                <Trash2 className="text-destructive h-4 w-4" aria-hidden="true" />
               </Button>
             ) : null}
           </li>
@@ -245,28 +208,20 @@ function GrantDialog({
   // Cert grants at a location are always for STAFF; manager/admin shouldn't
   // need certs themselves. Backend will reject if a non-staff is supplied.
   const usersQuery = useQuery({
-    queryKey: ["users", "all-staff"],
-    queryFn: () => usersService.directory({ role: "EMPLOYEE" }),
+    queryKey: ['users', 'all-staff'],
+    queryFn: () => usersService.directory({ role: 'EMPLOYEE' }),
     staleTime: 60_000,
   });
-  const [userId, setUserId] = useState("");
+  const [userId, setUserId] = useState('');
   const [skillIds, setSkillIds] = useState<readonly string[]>([]);
-  const [expiresAt, setExpiresAt] = useState("");
-  const [notes, setNotes] = useState("");
+  const [expiresAt, setExpiresAt] = useState('');
+  const [notes, setNotes] = useState('');
 
-  const allUsers = useMemo(
-    () => usersQuery.data ?? [],
-    [usersQuery.data],
-  );
-  const usersById = useMemo(
-    () => new Map(allUsers.map((u) => [u.id, u])),
-    [allUsers],
-  );
+  const allUsers = useMemo(() => usersQuery.data ?? [], [usersQuery.data]);
+  const usersById = useMemo(() => new Map(allUsers.map((u) => [u.id, u])), [allUsers]);
 
   const toggleSkill = (id: string) => {
-    setSkillIds((prev) =>
-      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id],
-    );
+    setSkillIds((prev) => (prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]));
   };
 
   const submit = () => {
@@ -275,17 +230,14 @@ function GrantDialog({
         userId,
         locationId,
         skillIds,
-        expiresAt: expiresAt
-          ? new Date(expiresAt + "T00:00:00Z").toISOString()
-          : undefined,
+        expiresAt: expiresAt ? new Date(expiresAt + 'T00:00:00Z').toISOString() : undefined,
         notes: notes.trim() || undefined,
       },
       { onSuccess: onClose },
     );
   };
 
-  const canSubmit =
-    Boolean(userId) && skillIds.length > 0 && !mutations.grant.isPending;
+  const canSubmit = Boolean(userId) && skillIds.length > 0 && !mutations.grant.isPending;
 
   return (
     <div role="dialog" aria-modal="true" className="fixed inset-0 z-40">
@@ -303,13 +255,7 @@ function GrantDialog({
               Choose a staff member and which skills they’re cleared for here.
             </p>
           </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            aria-label="Close"
-          >
+          <Button type="button" variant="ghost" size="icon" onClick={onClose} aria-label="Close">
             <X className="h-4 w-4" aria-hidden="true" />
           </Button>
         </header>
@@ -318,11 +264,7 @@ function GrantDialog({
           <Label htmlFor="cert-user">Staff member</Label>
           <Select value={userId} onValueChange={setUserId}>
             <SelectTrigger id="cert-user">
-              <SelectValue
-                placeholder={
-                  usersQuery.isLoading ? "Loading…" : "Pick someone"
-                }
-              />
+              <SelectValue placeholder={usersQuery.isLoading ? 'Loading…' : 'Pick someone'} />
             </SelectTrigger>
             <SelectContent>
               {allUsers.map((u) => (
@@ -333,9 +275,7 @@ function GrantDialog({
             </SelectContent>
           </Select>
           {userId && usersById.get(userId)?.email ? (
-            <p className="text-muted-foreground text-xs">
-              {usersById.get(userId)?.email}
-            </p>
+            <p className="text-muted-foreground text-xs">{usersById.get(userId)?.email}</p>
           ) : null}
         </div>
 
@@ -343,9 +283,7 @@ function GrantDialog({
           <Label>Skills</Label>
           <div className="flex flex-wrap gap-2">
             {skills.length === 0 ? (
-              <p className="text-muted-foreground text-xs">
-                No skills configured yet.
-              </p>
+              <p className="text-muted-foreground text-xs">No skills configured yet.</p>
             ) : (
               skills.map((skill) => {
                 const active = skillIds.includes(skill.id);
@@ -355,10 +293,10 @@ function GrantDialog({
                     type="button"
                     onClick={() => toggleSkill(skill.id)}
                     className={
-                      "rounded-full border px-3 py-1 text-xs font-medium transition-colors " +
+                      'rounded-full border px-3 py-1 text-xs font-medium transition-colors ' +
                       (active
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-border/60 text-muted-foreground hover:bg-muted")
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-border/60 text-muted-foreground hover:bg-muted')
                     }
                   >
                     {skill.name}

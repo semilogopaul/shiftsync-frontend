@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useMemo, useState } from "react";
+import { useMemo, useState } from 'react';
 import {
   AlertTriangle,
   CheckCircle2,
@@ -13,39 +13,32 @@ import {
   Sparkles,
   Trash2,
   X,
-} from "lucide-react";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
+} from 'lucide-react';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
-import {
-  formatDayLabel,
-  formatTimeRange,
-} from "@/common/utils/datetime";
-import { ValidationFindingsList } from "@/common/components/validation-findings-list";
-import { extractValidationPreview } from "@/common/utils/validation-errors";
-import {
-  findingTitle,
-  isOverridableCode,
-} from "@/common/constants/validation-codes";
-import type {
-  AssignmentPreview,
-} from "@/common/types/domain";
-import { useCurrentUser } from "@/modules/auth";
-import { usersService } from "@/modules/users";
-import { RequestSwapDialog, DropShiftDialog } from "@/modules/swaps";
-import { useShift, useShiftMutations } from "../hooks/use-shifts";
-import { shiftsService } from "../services/shifts-service";
-import { EditShiftDialog } from "./edit-shift-dialog";
-import { ShiftHistoryDialog } from "./shift-history-dialog";
+} from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
+import { formatDayLabel, formatTimeRange } from '@/common/utils/datetime';
+import { ValidationFindingsList } from '@/common/components/validation-findings-list';
+import { extractValidationPreview } from '@/common/utils/validation-errors';
+import { findingTitle, isOverridableCode } from '@/common/constants/validation-codes';
+import type { AssignmentPreview } from '@/common/types/domain';
+import { useCurrentUser } from '@/modules/auth';
+import { usersService } from '@/modules/users';
+import { RequestSwapDialog, DropShiftDialog } from '@/modules/swaps';
+import { useShift, useShiftMutations } from '../hooks/use-shifts';
+import { shiftsService } from '../services/shifts-service';
+import { EditShiftDialog } from './edit-shift-dialog';
+import { ShiftHistoryDialog } from './shift-history-dialog';
 
 interface ShiftDrawerProps {
   readonly shiftId: string;
@@ -57,12 +50,10 @@ export function ShiftDrawer({ shiftId, onClose }: ShiftDrawerProps) {
   const { data: shift, isLoading } = useShift(shiftId);
   const mutations = useShiftMutations();
 
-  const isManager = user?.role === "ADMIN" || user?.role === "MANAGER";
-  const isAdmin = user?.role === "ADMIN";
-  const isStaff = user?.role === "EMPLOYEE";
-  const meAssignment = shift?.assignments.find(
-    (assignment) => assignment.userId === user?.id,
-  );
+  const isManager = user?.role === 'ADMIN' || user?.role === 'MANAGER';
+  const isAdmin = user?.role === 'ADMIN';
+  const isStaff = user?.role === 'EMPLOYEE';
+  const meAssignment = shift?.assignments.find((assignment) => assignment.userId === user?.id);
 
   const [editOpen, setEditOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -71,8 +62,10 @@ export function ShiftDrawer({ shiftId, onClose }: ShiftDrawerProps) {
 
   // Per the brief, edits/unpublishes within 48h of start are restricted to
   // admins. Managers see a banner explaining why the buttons are disabled.
+  // Capture "now" once per mount via lazy state init so it's stable across re-renders.
+  const [now] = useState(() => Date.now());
   const hoursUntilStart = shift
-    ? (new Date(shift.startsAt).getTime() - Date.now()) / 3_600_000
+    ? (new Date(shift.startsAt).getTime() - now) / 3_600_000
     : Number.POSITIVE_INFINITY;
   const within48h = hoursUntilStart < 48 && hoursUntilStart > 0;
   const editLocked = within48h && !isAdmin;
@@ -89,51 +82,54 @@ export function ShiftDrawer({ shiftId, onClose }: ShiftDrawerProps) {
         <header className="border-border/60 flex items-start justify-between gap-4 border-b p-5">
           <div>
             <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">
-              {shift?.location.name ?? "Shift"}
+              {shift?.location?.name ?? 'Shift'}
             </p>
             <h2 className="mt-1 text-xl font-semibold tracking-tight">
               {shift
-                ? formatDayLabel(shift.startsAt, shift.location.timezone)
-                : "Loading…"}
+                ? formatDayLabel(shift.startsAt, shift.location?.timezone ?? 'UTC')
+                : 'Loading…'}
             </h2>
             {shift ? (
               <p className="text-muted-foreground mt-1 text-sm">
-                {formatTimeRange(
-                  shift.startsAt,
-                  shift.endsAt,
-                  shift.location.timezone,
-                )}
+                {formatTimeRange(shift.startsAt, shift.endsAt, shift.location?.timezone ?? 'UTC')}
               </p>
             ) : null}
           </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            aria-label="Close"
-          >
+          <Button type="button" variant="ghost" size="icon" onClick={onClose} aria-label="Close">
             <X className="h-4 w-4" aria-hidden="true" />
           </Button>
         </header>
 
         <div className="flex-1 space-y-5 overflow-y-auto p-5">
           {isLoading || !shift ? (
-            <div className="text-muted-foreground flex items-center gap-2 py-12">
-              <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-              Loading…
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <Skeleton className="h-16 rounded-xl" />
+                <Skeleton className="h-16 rounded-xl" />
+                <Skeleton className="h-16 rounded-xl" />
+                <Skeleton className="h-16 rounded-xl" />
+              </div>
+              <Skeleton className="h-32 rounded-xl" />
+              <Skeleton className="h-24 rounded-xl" />
             </div>
           ) : (
             <>
               <div className="grid grid-cols-2 gap-3">
-                <Stat label="Headcount" value={`${shift.assignments.length} / ${shift.headcount}`} />
+                <Stat
+                  label="Headcount"
+                  value={`${shift.assignments.length} / ${shift.headcount}`}
+                />
                 <Stat
                   label="Status"
-                  value={shift.status === "PUBLISHED" ? "Published" : shift.status === "DRAFT" ? "Draft" : shift.status}
+                  value={
+                    shift.status === 'PUBLISHED'
+                      ? 'Published'
+                      : shift.status === 'DRAFT'
+                        ? 'Draft'
+                        : shift.status
+                  }
                 />
-                {shift.skill ? (
-                  <Stat label="Skill" value={shift.skill.name} />
-                ) : null}
+                {shift.skill ? <Stat label="Skill" value={shift.skill.name} /> : null}
                 {shift.isPremium ? (
                   <Stat
                     label="Premium"
@@ -153,9 +149,7 @@ export function ShiftDrawer({ shiftId, onClose }: ShiftDrawerProps) {
                   Assigned ({shift.assignments.length})
                 </h3>
                 {shift.assignments.length === 0 ? (
-                  <p className="text-muted-foreground mt-2 text-sm">
-                    Nobody assigned yet.
-                  </p>
+                  <p className="text-muted-foreground mt-2 text-sm">Nobody assigned yet.</p>
                 ) : (
                   <ul className="mt-2 space-y-2">
                     {shift.assignments.map((assignment) => (
@@ -187,10 +181,7 @@ export function ShiftDrawer({ shiftId, onClose }: ShiftDrawerProps) {
                             }
                             aria-label={`Remove ${assignment.user.firstName}`}
                           >
-                            <Trash2
-                              className="h-4 w-4 text-destructive"
-                              aria-hidden="true"
-                            />
+                            <Trash2 className="h-4 w-4 text-destructive" aria-hidden="true" />
                           </Button>
                         ) : null}
                       </li>
@@ -200,7 +191,7 @@ export function ShiftDrawer({ shiftId, onClose }: ShiftDrawerProps) {
               </section>
 
               {/* Manager: assign someone */}
-              {isManager ? <AssignPanel shiftId={shiftId} /> : null}
+              {isManager ? <AssignPanel shiftId={shiftId} locationId={shift?.locationId} /> : null}
 
               {/* Manager actions */}
               {isManager ? (
@@ -208,15 +199,15 @@ export function ShiftDrawer({ shiftId, onClose }: ShiftDrawerProps) {
                   {within48h ? (
                     <p
                       className={cn(
-                        "rounded-lg border px-3 py-2 text-xs",
+                        'rounded-lg border px-3 py-2 text-xs',
                         editLocked
-                          ? "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300"
-                          : "border-border/60 bg-muted/40 text-muted-foreground",
+                          ? 'border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300'
+                          : 'border-border/60 bg-muted/40 text-muted-foreground',
                       )}
                     >
                       {editLocked
-                        ? "This shift starts within 48 hours — only an admin can edit or unpublish it."
-                        : "Within 48h of start — admin override active."}
+                        ? 'This shift starts within 48 hours — only an admin can edit or unpublish it.'
+                        : 'Within 48h of start — admin override active.'}
                     </p>
                   ) : null}
                   <div className="flex flex-wrap gap-2">
@@ -225,7 +216,7 @@ export function ShiftDrawer({ shiftId, onClose }: ShiftDrawerProps) {
                       variant="outline"
                       size="sm"
                       onClick={() => setEditOpen(true)}
-                      disabled={editLocked || shift.status === "CANCELLED"}
+                      disabled={editLocked || shift.status === 'CANCELLED'}
                     >
                       <Pencil className="mr-2 h-4 w-4" aria-hidden="true" />
                       Edit
@@ -239,7 +230,7 @@ export function ShiftDrawer({ shiftId, onClose }: ShiftDrawerProps) {
                       <History className="mr-2 h-4 w-4" aria-hidden="true" />
                       History
                     </Button>
-                    {shift.status === "PUBLISHED" ? (
+                    {shift.status === 'PUBLISHED' ? (
                       <Button
                         type="button"
                         variant="outline"
@@ -285,7 +276,7 @@ export function ShiftDrawer({ shiftId, onClose }: ShiftDrawerProps) {
                       Clock in
                     </Button>
                   )}
-                  {shift.status === "PUBLISHED" && !meAssignment.clockedInAt ? (
+                  {shift.status === 'PUBLISHED' && !meAssignment.clockedInAt ? (
                     <>
                       <Button
                         type="button"
@@ -309,9 +300,7 @@ export function ShiftDrawer({ shiftId, onClose }: ShiftDrawerProps) {
                   ) : null}
                   <CalloutButton
                     shiftId={shift.id}
-                    onCallout={(reason) =>
-                      mutations.callout.mutate({ shiftId: shift.id, reason })
-                    }
+                    onCallout={(reason) => mutations.callout.mutate({ shiftId: shift.id, reason })}
                     pending={mutations.callout.isPending}
                   />
                 </div>
@@ -340,13 +329,7 @@ export function ShiftDrawer({ shiftId, onClose }: ShiftDrawerProps) {
   );
 }
 
-function Stat({
-  label,
-  value,
-}: {
-  readonly label: string;
-  readonly value: React.ReactNode;
-}) {
+function Stat({ label, value }: { readonly label: string; readonly value: React.ReactNode }) {
   return (
     <div className="border-border/60 bg-muted/30 rounded-xl border p-3">
       <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">
@@ -365,7 +348,7 @@ function CalloutButton({
   readonly onCallout: (reason: string) => void;
   readonly pending: boolean;
 }) {
-  const [reason, setReason] = useState("");
+  const [reason, setReason] = useState('');
   const [open, setOpen] = useState(false);
 
   if (!open) {
@@ -395,12 +378,7 @@ function CalloutButton({
         placeholder="e.g. stomach flu"
       />
       <div className="flex justify-end gap-2">
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => setOpen(false)}
-        >
+        <Button type="button" variant="ghost" size="sm" onClick={() => setOpen(false)}>
           Cancel
         </Button>
         <Button
@@ -418,17 +396,19 @@ function CalloutButton({
 
 interface AssignPanelProps {
   readonly shiftId: string;
+  readonly locationId: string | undefined;
 }
 
-function AssignPanel({ shiftId }: AssignPanelProps) {
-  const [userId, setUserId] = useState<string>("");
-  const [overrideReason, setOverrideReason] = useState("");
+function AssignPanel({ shiftId, locationId }: AssignPanelProps) {
+  const [userId, setUserId] = useState<string>('');
+  const [overrideReason, setOverrideReason] = useState('');
   const mutations = useShiftMutations();
 
   const usersQuery = useQuery({
-    queryKey: ["users", "all"],
-    queryFn: () => usersService.directory({ role: "EMPLOYEE" }),
+    queryKey: ['users', 'directory', { locationId }],
+    queryFn: () => usersService.directory({ role: 'EMPLOYEE', locationId }),
     staleTime: 60_000,
+    enabled: Boolean(locationId),
   });
 
   const previewMutation = useMutation({
@@ -446,14 +426,13 @@ function AssignPanel({ shiftId }: AssignPanelProps) {
     () => extractValidationPreview(mutations.assign.error),
     [mutations.assign.error],
   );
-  const preview: AssignmentPreview | undefined =
-    errorPreview ?? previewMutation.data;
+  const preview: AssignmentPreview | undefined = errorPreview ?? previewMutation.data;
   const errors = useMemo(
-    () => preview?.findings.filter((f) => f.severity === "error") ?? [],
+    () => preview?.findings.filter((f) => f.severity === 'error') ?? [],
     [preview],
   );
   const warnings = useMemo(
-    () => preview?.findings.filter((f) => f.severity === "warning") ?? [],
+    () => preview?.findings.filter((f) => f.severity === 'warning') ?? [],
     [preview],
   );
   const overridable = errors.some((e) => isOverridableCode(e.code));
@@ -490,16 +469,14 @@ function AssignPanel({ shiftId }: AssignPanelProps) {
           {previewMutation.isPending ? (
             <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
           ) : (
-            "Check"
+            'Check'
           )}
         </Button>
       </div>
 
       {preview ? (
         <div className="space-y-2">
-          {preview.projection ? (
-            <ProjectionPanel projection={preview.projection} />
-          ) : null}
+          {preview.projection ? <ProjectionPanel projection={preview.projection} /> : null}
           {errors.length === 0 && warnings.length === 0 ? (
             <FindingRow
               tone="ok"
@@ -543,7 +520,7 @@ function AssignPanel({ shiftId }: AssignPanelProps) {
                         {alt.user.firstName} {alt.user.lastName}
                       </p>
                       <p className="text-muted-foreground mt-0.5 text-xs">
-                        {alt.reasons.join(" · ")}
+                        {alt.reasons.join(' · ')}
                       </p>
                     </div>
                     <Button
@@ -580,10 +557,7 @@ function AssignPanel({ shiftId }: AssignPanelProps) {
         // Only show a fallback banner when the error did NOT carry a structured
         // preview — otherwise the panel above already explains the broken rule
         // and lists alternatives, and a second copy is just noise.
-        <ValidationFindingsList
-          error={mutations.assign.error}
-          fallback="Could not assign."
-        />
+        <ValidationFindingsList error={mutations.assign.error} fallback="Could not assign." />
       ) : null}
 
       <Button
@@ -605,7 +579,7 @@ function AssignPanel({ shiftId }: AssignPanelProps) {
           mutations.assign.isPending ||
           (overridable && overrideReason.trim().length < 2)
         }
-        className={cn("w-full")}
+        className={cn('w-full')}
       >
         Confirm assignment
       </Button>
@@ -621,33 +595,29 @@ function AssignPanel({ shiftId }: AssignPanelProps) {
 function ProjectionPanel({
   projection,
 }: {
-  readonly projection: NonNullable<AssignmentPreview["projection"]>;
+  readonly projection: NonNullable<AssignmentPreview['projection']>;
 }) {
   const dailyTone =
     projection.projectedDailyHours > 12
-      ? "text-destructive"
+      ? 'text-destructive'
       : projection.projectedDailyHours > 8
-        ? "text-amber-600 dark:text-amber-400"
-        : "text-foreground";
+        ? 'text-amber-600 dark:text-amber-400'
+        : 'text-foreground';
   const weeklyTone =
     projection.projectedWeeklyHours > 40
-      ? "text-destructive"
+      ? 'text-destructive'
       : projection.projectedWeeklyHours >= 35
-        ? "text-amber-600 dark:text-amber-400"
-        : "text-foreground";
+        ? 'text-amber-600 dark:text-amber-400'
+        : 'text-foreground';
   const consecutiveTone =
     projection.projectedConsecutiveDays >= 7
-      ? "text-destructive"
+      ? 'text-destructive'
       : projection.projectedConsecutiveDays >= 6
-        ? "text-amber-600 dark:text-amber-400"
-        : "text-foreground";
+        ? 'text-amber-600 dark:text-amber-400'
+        : 'text-foreground';
   return (
     <div className="border-border/60 bg-muted/30 grid grid-cols-3 gap-2 rounded-lg border p-2.5 text-center">
-      <ProjectionCell
-        label="Daily"
-        value={`${projection.projectedDailyHours}h`}
-        tone={dailyTone}
-      />
+      <ProjectionCell label="Daily" value={`${projection.projectedDailyHours}h`} tone={dailyTone} />
       <ProjectionCell
         label="Weekly"
         value={`${projection.projectedWeeklyHours}h`}
@@ -676,7 +646,7 @@ function ProjectionCell({
       <p className="text-muted-foreground text-[10px] font-semibold uppercase tracking-wider">
         {label}
       </p>
-      <p className={cn("text-sm font-semibold", tone)}>{value}</p>
+      <p className={cn('text-sm font-semibold', tone)}>{value}</p>
     </div>
   );
 }
@@ -687,7 +657,7 @@ function FindingRow({
   title,
   detail,
 }: {
-  readonly tone: "ok" | "warning" | "error";
+  readonly tone: 'ok' | 'warning' | 'error';
   readonly icon: React.ReactNode;
   readonly title: string;
   readonly detail: string;
@@ -695,13 +665,12 @@ function FindingRow({
   return (
     <div
       className={cn(
-        "flex items-start gap-2 rounded-lg border p-2.5 text-xs",
-        tone === "ok" &&
-          "border-emerald-500/30 bg-emerald-500/5 text-emerald-700 dark:text-emerald-300",
-        tone === "warning" &&
-          "border-amber-500/30 bg-amber-500/5 text-amber-700 dark:text-amber-300",
-        tone === "error" &&
-          "border-destructive/30 bg-destructive/5 text-destructive",
+        'flex items-start gap-2 rounded-lg border p-2.5 text-xs',
+        tone === 'ok' &&
+          'border-emerald-500/30 bg-emerald-500/5 text-emerald-700 dark:text-emerald-300',
+        tone === 'warning' &&
+          'border-amber-500/30 bg-amber-500/5 text-amber-700 dark:text-amber-300',
+        tone === 'error' && 'border-destructive/30 bg-destructive/5 text-destructive',
       )}
     >
       <span className="mt-0.5">{icon}</span>
